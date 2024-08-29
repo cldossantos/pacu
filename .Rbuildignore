@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^doc$
+^Meta$
+^package-notes\.md$
+tests-data
+tests-results
+inst/python
+tests-deprecated
+^LICENSE\.md$

@@ -1,0 +1,108 @@
+
+run.test <-  get(".run.local.tests", envir = pacu.options)
+
+if(run.test){
+
+  require(pacu)
+  require(terra)
+  require(sf)
+  require(gstat)
+
+  cores <- parallel::detectCores() - 2L
+  cores <- 6
+  verbose <- TRUE
+
+  raw.yield <- st_read('./tests-data/hord-f104/trial-yield.shp')
+  app.n <- st_read('./tests-data/hord-f104/as-applied-n-urea.shp')
+  app.s <- st_read('./tests-data/hord-f104/as-applied-s.shp')
+  boundary <- st_read('./tests-data/hord-f104/boundary.shp')
+  trial.design <- (st_read('./tests-data/hord-f104/trial-design.shp'))
+
+  plot(raw.yield[, "Yld_Vol_Dr"], key.pos = 4)
+  boxplot(raw.yield$Yld_Vol_Dr)
+  plot(trial.design[, "SEEDRATE"], key.pos = 4)
+
+  ### Experiment area, 64 ha or 162 acres
+  ### sum(st_area(trial.design)) * 1e-4
+
+  start <- Sys.time()
+  yld.map0 <- pa_yield_map(input = raw.yield,
+                           data.columns = "Yld_Vol_Dr",
+                           algorithm = 'simple',
+                           cores = cores,
+                           verbose = verbose)
+  end <- Sys.time() ## This takes 33.5 seconds (Mac 2017)
+                    ## This takes 36.8 seconds (Dell Precision 5680)
+
+  ## Why does this look weird? Because there is no trial design?
+  plot(density(yld.map0$yield))
+  boxplot(yld.map0$yield)
+  plot(yld.map0[,"yield"], key.pos = 4)
+
+  start <- Sys.time()
+  yld.map1 <- pa_yield_map(input = raw.yield,
+                           trial.design = trial.design,
+                           data.columns = "Yld_Vol_Dr",
+                           algorithm = 'simple',
+                           cores = cores,
+                           verbose = verbose)
+  end <- Sys.time() ## This takes 39.7 seconds (Mac 2017) - 2 cores
+                    ## This takes 44.5 seconds (DP 5680) - 18 cores (ignored)
+
+  plot(yld.map1[,"yield"], key.pos = 4)
+  plot(density(yld.map1$yield)) ## It looks like the data were cleaned
+  ## But clean is FALSE by default
+
+  start <- Sys.time()
+  yld.map2 <- pa_yield_map(input = raw.yield,
+                           trial.design = trial.design,
+                           algorithm = 'ritas',
+                           formula = z ~ X + Y,
+                           smooth.method = "idw",
+                           clean = TRUE,
+                           cores = cores,
+                           verbose = verbose)
+  end <- Sys.time()
+
+
+  start <- Sys.time()
+  yld.map3 <- pa_yield_map(input = raw.yield,
+                          trial.design = trial.design,
+                          algorithm = 'ritas',
+                          formula = z ~ X + Y,
+                          clean = TRUE,
+                          cores = cores,
+                          verbose = verbose)
+  end <- Sys.time()
+
+
+  nit.map <- pa_yield_map(input = app.n,
+                          trial.design = trial.design,
+                          data.columns = 'Rt_Apd_Ms_',
+                          algorithm = 'simple',
+                          var.label = 'nrate',
+                          cores = cores,
+                          verbose = verbose)
+
+  seed.map <- pa_yield_map(input = app.s,
+                           trial.design = trial.design,
+                           algorithm = 'simple',
+                           data.columns = 'Rt_Apd_Ct_',
+                           var.label = 'population',
+                           cores = cores,
+                           verbose = verbose)
+
+  units(seed.map[[1]]) <- NULL
+  units(nit.map[[1]]) <- NULL
+  units(yld.map[[1]]) <- NULL
+
+  comb <- st_join(yld.map, nit.map, left = TRUE, join = st_equals)
+  comb <- st_join(comb, seed.map, legt = TRUE, join = st_equals)
+  plot(comb$nrate, comb$yield)
+  plot(comb$population, comb$yield)
+
+  fit <- lm(yield ~ nrate + population, data = comb)
+  summary(fit)
+
+}
+

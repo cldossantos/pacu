@@ -1,0 +1,6 @@
+/doc/
+/Meta/
+inst/doc
+tests-data
+tests-deprecated
+tests-results

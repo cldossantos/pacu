@@ -1,0 +1,32 @@
+Package: pacu
+Type: Package
+Title: Precision Agriculture Computational Utilities
+Version: 0.1.27
+Authors@R: c(person('dos Santos', 'Caio', email = 'clsantos@iastate.edu', role = c('aut', 'cre')),
+             person('Miguez', 'Fernando', role = 'aut'))
+Maintainer: Caio dos Santos<clsantos@iastate.edu>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+Depends: R (>= 4.0.0)
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+VignetteBuilder: knitr
+RoxygenNote: 7.3.1
+Imports:
+        apsimx,
+        gstat,
+        httr,
+        jsonlite,
+        sf,
+        sftime,
+        stars,
+        units,
+        XML,
+        tmap
+Suggests:
+        knitr,
+        ggplot2,
+        patchwork,
+        nasapower,
+        spData

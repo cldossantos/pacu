@@ -1,0 +1,207 @@
+### Testing the use of GAMS for spatial interpolation
+
+library(mgcv)
+library(sf)
+library(pacu)
+
+### Running some tests with basswood
+fld1 <- st_read("tests-data/basswood/2012-basswood.shp")
+
+fld1$yield <- fld1$DRY_BU_AC
+fld1$moisture <- fld1$MOISTURE
+fld1$lat <- fld1$LATITUDE
+fld1$lon <- fld1$LONGITUDE
+
+plot(fld1[, "yield"])
+
+names(fld1)
+summary(fld1$LONGITUDE)
+dim(fld1)
+summary(fld1$DRY_BU_AC)
+tail(sort(fld1$DRY_BU_AC))
+hist(fld1$DRY_BU_AC)
+summary(fld1)
+max(fld1$DRY_BU_AC)
+apsimx:::unit_conv(max(fld1$DRY_BU_AC), from = "maize bu/ac", to = "kg/ha")
+
+### This is the gam version of a spatial interpolation
+### the 'te' function sets up a 'tensor' product that
+### also includes the 'main effects' of longitude and
+### latitude
+fgm1 <- gam(yield ~ te(lon, lat), data = fld1)
+
+prd <- predict(fgm1)
+
+fld1$prd.gam <- prd
+
+plot(fld1[, "prd.gam"])
+
+plot(fgm1)
+
+plot(fld1$yield, fld1$prd.gam)
+abline(0, 1)
+
+### this is an equivalent model but with separated terms
+fgm2 <- gam(yield ~ ti(lon) + ti(lat) + ti(lon, lat), data = fld1)
+
+### Almost identical
+AIC(fgm1, fgm2)
+
+plot(fgm2)
+
+### This is algorithm 'simple'
+start <- Sys.time()
+fld1.yld0 <- pa_yield(fld1,
+                      algorithm = "simple",
+                      data.columns = c("yield", "moisture"),
+                      data.units = c("bushel/acre", "%"),
+                      lbs.per.bushel = 56,
+                      unit.system = "standard",
+                      verbose = TRUE)
+end <- Sys.time() ## 5.8 seconds Dell laptop (or Desktop)
+
+pa_plot(fld1.yld0)
+
+start <- Sys.time()
+fld1.yld1.s.idw <- pa_yield(fld1,
+                            algorithm = "simple",
+                            data.columns = c("yield", "moisture"),
+                            data.units = c("bushel/acre", "%"),
+                            lbs.per.bushel = 56,
+                            smooth.method = "idw",
+                            clean = TRUE,
+                            clean.sd = 2,
+                            unit.system = "standard",
+                            verbose = TRUE)
+end <- Sys.time() ## 20-22 seconds in Dell laptop (or Desktop)
+
+pa_plot(fld1.yld1.s.idw)
+
+start <- Sys.time()
+fld1.yld2.c1 <- pa_yield(fld1,
+                      algorithm = "ritas",
+                      lbs.per.bushel = 56,
+                      smooth.method = "idw",
+                      clean = TRUE,
+                      clean.sd = 2,
+                      unit.system = "standard",
+                      verbose = 2)
+end <- Sys.time() ## This takes over 4 minutes (laptop), (2.8 minutes Desktop)
+
+
+pa_plot(fld1.yld1.c1)
+
+start <- Sys.time()
+fld1.yld2.c2 <- pa_yield(fld1,
+                         algorithm = "ritas",
+                         lbs.per.bushel = 56,
+                         smooth.method = "idw",
+                         clean = TRUE,
+                         clean.sd = 2,
+                         unit.system = "standard",
+                         cores = 2L,
+                         verbose = 2)
+end <- Sys.time()
+## This takes less than 3 (laptop), and 1.7 (Desktop)
+
+start <- Sys.time()
+fld1.yld2.c10 <- pa_yield(fld1,
+                         algorithm = "ritas",
+                         lbs.per.bushel = 56,
+                         smooth.method = "idw",
+                         clean = TRUE,
+                         clean.sd = 2,
+                         unit.system = "standard",
+                         cores = 10L,
+                         verbose = 2)
+end <- Sys.time() ## This takes 1.4 minutes (Desktop)
+
+start <- Sys.time()
+fld1.yld3.c10 <- pa_yield(fld1,
+                          algorithm = "ritas",
+                          lbs.per.bushel = 56,
+                          smooth.method = "krige",
+                          clean = TRUE,
+                          clean.sd = 2,
+                          unit.system = "standard",
+                          cores = 10L,
+                          verbose = 2)
+end <- Sys.time() ## This takes 11.6 minutes (Desktop)
+
+start <- Sys.time()
+fld1.yld4.c10 <- pa_yield(fld1,
+                          algorithm = "ritas",
+                          lbs.per.bushel = 56,
+                          smooth.method = "krige",
+                          clean = TRUE,
+                          clean.sd = 2,
+                          unit.system = "standard",
+                          cores = 8L,
+                          verbose = 2,
+                          maxdist = 20)
+end <- Sys.time() ## This takes 3.7 minutes (Desktop)
+
+
+#### Test other fields ----
+## Soybean yield, Ohio, 2022
+fld2 <- st_read("tests-data/hord-2022/Hord_F104_2022_Soybean_Yield.shp")
+
+fld2$yield <- fld2$Yld_Vol_Dr
+fld2$moisture <- fld2$Moisture__
+plot(fld2$yield)
+fld2.cln <- subset(fld2, yield < 200)
+## Extract coordinates
+crds <- st_coordinates(fld2.cln)
+fld2.dat <- data.frame(yield = fld2.cln$yield, crds)
+
+fgm2 <- gam(yield ~ te(X, Y), data = fld2.dat)
+
+## Would need to figure out how to polygonize what is essentianlly
+## a raster
+fld2.cln$prd.yield <- predict(fgm2)
+
+plot(fld2.cln[, "prd.yield"])
+plot(fld2.cln[, "yield"])
+
+### This does not work well
+fld2.yld <- pa_yield(fld2,
+                     data.columns = c("yield", "moisture"),
+                     data.units = c("bu/ac", "%"),
+                     lbs.per.bushel = 60,
+                     clean = TRUE,
+                     clean.sd = 2,
+                     unit.system = "standard")
+
+names(fld2.yld)
+
+class(fld2.yld$yield)
+
+plot(fld2.yld$yield)
+
+plot(fld2.yld$yield$yield)
+
+### This fails because of bad names
+fld2.cln.yld <- pa_yield(fld2.cln,
+                         data.columns = c("yield", "moisture"),
+                         data.units = c("bu/ac", "%"),
+                         lbs.per.bushel = 60,
+                         clean = TRUE,
+                         clean.sd = 2,
+                         unit.system = "standard")
+
+
+fld2.cln$moisture <- fld2.cln$Moisture__
+fld2.cln.yld <- pa_yield(fld2.cln,
+                         data.columns = c("yield", "moisture"),
+                         data.units = c("bushel/acre", "%"),
+                         lbs.per.bushel = 60,
+                         clean = TRUE,
+                         clean.sd = 2,
+                         unit.system = "standard")
+
+fld2.cln$prd.pacu.simple <- fld2.cln.yld$yield$yield
+plot(fld2.cln.yld$yield)
+
+hist(fld2.cln$yield)
+hist(fld2.cln$prd.yield)
+plot(fld2.cln.yld$yield$yield)

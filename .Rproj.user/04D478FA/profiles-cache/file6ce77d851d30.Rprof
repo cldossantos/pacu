@@ -1,0 +1,17 @@
+memory profiling: GC profiling: line profiling: sample.interval=10000
+:6278872:8817689:395886344:1571:"cmp" "cmpPrim2" "h" "tryInline" "cmpCall" "cmp" "cmpComplexAssign" "h" "tryInline" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "genCode" "cmpfun" "compiler:::tryCmpfun" "profvis::profvis" 
+:6290147:8826768:398209504:947:"doTryCatch" "tryCatchOne" "tryCatchList" "tryCatch" "checkCall" "cmpCall" "cmp" "cmpIndices" "cmpSubsetDispatch" "h" "tryInline" "cmpCall" "cmp" "cmpPrim2" "h" "tryInline" "cmpCall" "cmp" "genCode" "cmpCallArgs" "cmpCallSymFun" "cmpCall" "cmp" "cmpSymbolAssign" "h" "tryInline" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "genCode" "cmpfun" "compiler:::tryCmpfun" "profvis::profvis" 
+#File 1: /home/caio/Dropbox/pacu/R/yield_monitor.R
+:6308354:8834781:401396800:1160:"constantFoldCall" "constantFold" "cmp" "h" "tryInline" "cmpCall" "cmp" "genCode" "cmpfun" "compiler:::tryCmpfun" 1#34 "profvis::profvis" 
+:6327431:8841466:405276592:1501:"cmp" "genCode" "cmpCallArgs" "cmpCallExprFun" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "genCode" "cmpfun" "compiler:::tryCmpfun" 1#34 "profvis::profvis" 
+:6345576:8847541:408744560:1309:"CPL_crs_parameters" "crs_parameters" "st_is_longlat" "st_geos_binop" "st_intersects.sfc" ".pa_solve_vehicle_overlap" 1#34 "pa_adjust_obs_effective_area" "profvis::profvis" 
+#File 2: /home/caio/Dropbox/pacu/R/pacu_internal.R
+:6353371:8848663:409997280:835:"st_crs<-.sfc" "st_sfc" "[.sfc" 2#518 "FUN" "lapply" 2#518 ".pa_solve_vehicle_overlap" 1#34 "pa_adjust_obs_effective_area" "profvis::profvis" 
+:6361752:8872837:411290320:770:"serialize" "sendData.SOCKnode" "postNode" "sendCall" "clusterCall" "parallel::clusterExport" 2#527 ".pa_solve_vehicle_overlap" 1#34 "pa_adjust_obs_effective_area" "profvis::profvis" 
+:6362447:8879172:411366480:6:"unserialize" "recvData.SOCKnode" "FUN" "lapply" "clusterCall" "parallel::clusterExport" 2#527 ".pa_solve_vehicle_overlap" 1#34 "pa_adjust_obs_effective_area" "profvis::profvis" 
+:6362447:8879172:411366480:0:"unserialize" "recvData.SOCKnode" "FUN" "lapply" "clusterCall" "parallel::clusterExport" 2#527 ".pa_solve_vehicle_overlap" 1#34 "pa_adjust_obs_effective_area" "profvis::profvis" 
+:6363197:8888732:411469128:31:"serialize" "sendData.SOCKnode" "postNode" "sendCall" "clusterCall" "parallel::clusterEvalQ" 2#528 ".pa_solve_vehicle_overlap" 1#34 "pa_adjust_obs_effective_area" "profvis::profvis" 
+:6364779:8898154:411621952:43:"serialize" "sendData.SOCKnode" "postNode" "sendCall" "staticClusterApply" "clusterApply" "parallel::parLapply" 2#529 ".pa_solve_vehicle_overlap" 1#34 "pa_adjust_obs_effective_area" "profvis::profvis" 
+:6381093:8913325:415212056:1350:"any" "profvis::profvis" 
+:6389522:8913619:416980312:976:"names" "st_agr<-.sf" "[[<-.sf" "$<-.sf" 1#41 "pa_adjust_obs_effective_area" "profvis::profvis" 
+:6394951:8914900:417998168:646:"profvis::profvis" 

@@ -1,0 +1,13 @@
+memory profiling: GC profiling: line profiling: sample.interval=10000
+:6249098:8755234:394653392:1810:"cb$patchlabels" "codeBufCode" "genCode" "cmpCallArgs" "cmpCallSymFun" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "genCode" "cmpfun" "compiler:::tryCmpfun" "profvis::profvis" 
+:6260327:8759657:396790520:762:"as.vector" "union" "addCenvVars" "addCenvFrame" "funEnv" "make.functionContext" "h" "tryInline" "cmpCall" "cmp" "genCode" "cmpCallArgs" "cmpCallExprFun" "cmpCall" "cmp" "cmpSymbolAssign" "h" "tryInline" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "h" "tryInline" "cmpCall" "cmp" "genCode" "cmpfun" "compiler:::tryCmpfun" "profvis::profvis" 
+#File 1: /home/caio/Dropbox/pacu/R/pacu_internal.R
+#File 2: /home/caio/Dropbox/pacu/R/yield_monitor.R
+:6279530:8765234:400276296:1562:"sf::st_crs" 1#594 ".pa_make_vehicle_polygon" 2#119 "FUN" "lapply" 2#118 "pa_make_vehicle_polygons" "profvis::profvis" 
+:6291628:8765354:402682280:1851:"<Anonymous>" "mapply" "Ops.sfc" 1#593 ".pa_make_vehicle_polygon" 2#119 "FUN" "lapply" 2#118 "pa_make_vehicle_polygons" "profvis::profvis" 
+:6311923:8765504:406681128:3082:"stopifnot" "bb_wrap" "compute_bbox" "st_sfc" "Ops.sfc" 1#593 ".pa_make_vehicle_polygon" 2#119 "FUN" "lapply" 2#118 "pa_make_vehicle_polygons" "profvis::profvis" 
+:6326487:8765624:409561936:2227:"structure" "bb_wrap" "compute_bbox" "st_sfc" "st_geometry.sfg" "st_is_empty" "Ops.sfg" "<Anonymous>" "mapply" "Ops.sfc" 1#593 ".pa_make_vehicle_polygon" 2#119 "FUN" "lapply" 2#118 "pa_make_vehicle_polygons" "profvis::profvis" 
+:6347623:8765804:413735392:3224:"st_sfc" "st_geometry.sfg" "st_is_empty" "Ops.sfg" "<Anonymous>" "mapply" "Ops.sfc" 1#593 ".pa_make_vehicle_polygon" 2#119 "FUN" "lapply" 2#118 "pa_make_vehicle_polygons" "profvis::profvis" 
+:6358767:8765894:415934288:1693:"structure" "bb_wrap" "compute_bbox" "st_sfc" "st_geometry.sfg" "st_is_empty" "Ops.sfg" "<Anonymous>" "mapply" "Ops.sfc" 1#593 ".pa_make_vehicle_polygon" 2#119 "FUN" "lapply" 2#118 "pa_make_vehicle_polygons" "profvis::profvis" 
+:6379614:8766044:420044240:3178:"diag<-" "Ops.sfg" "<Anonymous>" "mapply" "Ops.sfc" 1#593 ".pa_make_vehicle_polygon" 2#119 "FUN" "lapply" 2#118 "pa_make_vehicle_polygons" "profvis::profvis" 
+:6392573:8766163:422946272:1618:"all.equal.list" "attr.all.equal" "all.equal.list" "all.equal.default" "Ops.crs" "Ops.crs" "FUN" "vapply" "chk_equal_crs" "c.sfc" "pa_make_vehicle_polygons" "profvis::profvis" 

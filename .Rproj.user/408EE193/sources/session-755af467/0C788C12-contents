@@ -1,0 +1,344 @@
+#'
+#' @title Create an interpolated yield map from raw data
+#' @description  Create an interpolated yield map from raw data
+#' @name pa_yield
+#' @rdname pa_yield
+#' @param input an sf object containing the input data from a yield monitor
+#' @param data.columns When algorithm is \sQuote{simple}, this argument should be a vector of length 2 or 3 (depends on whether the user want to adjust for time lag) indicating which column
+#' should be used to produce the yield map, a column containing moisture information, and a column indicating the time between readings. When algorithm is \sQuote{ritas}, an optional named vector with the column names for the
+#' variables \sQuote{flow, moisture, interval, angle, swath, distance}. If a an unnamed vector is supplied,
+#' the vector is assumed to be in this order. The default is NULL, in which case the function attempts to guess
+#' the columns by using a dictionary of possible guesses.
+#' @param data.units When algorithm is \sQuote{simple}, should be a vector of length two, indicating the units of the yield column and the moisture column.
+#' Common values would be \sQuote{c('bu/ac', '\%')}. When algorithm is \sQuote{ritas}, an optional named vector with strings representing units for the
+#' variables \sQuote{flow, moisture, interval, angle, swath, distance}. If a an unnamed vector is supplied,
+#' the vector is assumed to be in this order.
+#'  A typical value for this argument would be \sQuote{c(flow = 'lb/s', moisture = '\%', interval = 's', angle = 'degreeN', width = 'ft', distance = 'ft')}.
+#' Please see \link[units]{valid_udunits} for help with specifying units.
+#' The default is NULL, in which case the function attempts to guess the units according to the values of the variable.
+#' @param trial.design an sf object containing experimental unit polygons for which the predictions generated
+#' @param algorithm algorithm used to generate the yield map. See details for a more in depth explanation of the available algorithms.
+#' @param formula formula defining the relationship between the dependent and independent variables.
+#' If the dependent variable is a linear function of the coordinates, the formula can be \sQuote{z ~ X + Y}. If
+#' the dependent variable is modeled only as a function of the mean spatial process, the formula can be \sQuote{z ~ 1}.
+#' If no formula is supplied, it defaults to \sQuote{z ~ 1}.
+#' @param overlap.threshold the maximum overlap allowed when solving polygon boundary conflicts. Polygons ovarlaping more than the threshold
+#' will be removed.
+#' @param var.label optional string to name the final product. Defaults to "yield".
+#' @param boundary optional sf object representing the field's outer boundary. If it not supplied, the function attemps to generate
+#' a boundary from the observed points.
+#' @param clean whether to clean the raw data based on distance from the field edge and global standard deviation.
+#' @param clean.sd standard deviation above which the cleaning step will remove data. Defaults to 3.
+#' @param clean.edge.distance distance (m) from the field edge above which the cleaning step will remove data. Defaults to 0.
+#' @param smooth.method the smoothing method to be used. If \sQuote{none}, no smoothing will be conducted. If \sQuote{idw}, inverse distance weighted
+#' interpolation will be conducted. If \sQuote{krige}, kriging will be conducted.
+#' @param fun a function used to transform the data. Currently, the option are \sQuote{none} and \sQuote{log}. If none, data operations are carried out in the data scale.
+#' If log,  the function will use\link[gstat]{krigeTg} to perform kriging in the log scale. For now, only relevant when \sQuote{method} is krige.
+#' the log scale and back transform predictions to the data scale. When TRUE, \sQuote{fomula} should be \sQuote{z ~ 1}.
+#' @param scale.cellsize a multiplier used to change the default cell size. Defaults to 1.
+#' @param lbs.per.bushel a numeric value representing the number of pounds in a bushel (e.g., 60 for soybean and 56 for corn). This argument can be ommitted when
+#' the input and output units are in the metric system. It is necessary otherwise.
+#' @param moisture.adj an optional numeric value to set the moisture value to which the yield map predictions should be adjusted (e.g., 15.5 for corn, and 13.0 for soybean).
+#' If NULL, the function will adjust the moisture to the average moisture of the field.
+#' @param lag.adj an optional numeric value used to account for the time lag between the crop being cut by the combine and the time at which the combine records a data point.
+#' @param unit.system a string representing the unit system to be used in the function output. If \sQuote{standard}, the function output will be in
+#' bushel/acre. Alternatively, if \sQuote{metric}, outputs will be in metric tonnes/hectare.
+#' @param cores the number of cores used in the operation
+#' @param verbose whether to print operation details
+#' @param ... additional arguments to be passed \link[gstat]{krige} and \link[gstat]{idw}
+#' @details This function will follow the steps in the selected algorithm to produce a yield map from the raw data.
+#' @return a list containing an sf object containing the predicted values, and a variogram model when \sQuote{smooth.model} is equal \sQuote{krige}
+#' @author Caio dos Santos and Fernando Miguez
+#' @export
+#' @examples
+#' \donttest{
+#' ## for examples, see vignette pacu
+#' }
+#'
+pa_yield <- function(input,
+                         data.columns = NULL,
+                         data.units = NULL,
+                         trial.design = NULL,
+                         algorithm = c('simple', 'ritas'),
+                         formula = NULL,
+                         overlap.threshold = 0.5,
+                         var.label = 'yield',
+                         boundary = NULL,
+                         clean = FALSE,
+                         clean.sd = 3,
+                         clean.edge.distance = 0,
+                         smooth.method = c('none', 'krige', 'idw'),
+                         fun = c('none', 'log'),
+                         scale.cellsize = 1,
+                         lbs.per.bushel = NULL,
+                         moisture.adj = NULL,
+                         lag.adj = 0,
+                         unit.system = c('metric', 'standard'),
+                         cores = 1L,
+                         verbose = TRUE,
+                         ...) {
+
+  algorithm <- match.arg(algorithm)
+  smooth.method <- match.arg(smooth.method)
+  unit.system <- match.arg(unit.system)
+  fun <- match.arg(fun)
+
+  if ((is.null(lbs.per.bushel) && unit.system == 'standard') ||
+      (any(grepl('bu', data.units)) && is.null(lbs.per.bushel))){
+    stop('"lbs.per.bushel" argument is needed to convert units to/from US standard unit system.')
+  }
+
+
+  crt.crs <- sf::st_crs(input)
+  if(is.na(crt.crs)) {
+    cat('No CRS found. Defaulting to EPSG:4326\n')
+    sf::st_crs(input) <- 'epsg:4326'
+  }
+
+  input <- pa_2utm(input, verbose)
+
+  if(is.null(boundary)){
+    boundary <- .pa_field_boundary(st_geometry(input))
+  }else{
+    boundary <- sf::st_transform(boundary, sf::st_crs(input))
+  }
+
+
+
+
+  if (algorithm == 'simple') {
+
+    if(is.null(data.columns))
+      stop("Argument 'data.columns' is required when algorithm = 'simple'", call. = FALSE)
+
+    if (length(data.columns) < 2) {
+      stop('When algorith is "simple", the argument "data.columns" expects a vector of length 2 or 3.')
+    }
+
+    exp.order <- c('yield', 'moisture', 'interval')[1:length(data.columns)]
+    if(is.null(names(data.columns))) names(data.columns) <- exp.order
+    if(is.null(names(data.units))) names(data.units) <- exp.order
+    data.units <- data.units[exp.order]
+    data.columns <- data.columns[exp.order]
+
+
+    if(lag.adj > 0) {
+      if(is.na(data.columns[3]))
+        stop('interval column needed in the data.columns when "lag.adj" > 0.')
+
+      input <- pa_adjust_lag(input, lag.adj, data.columns[3])
+    }
+
+    tgt <- input[data.columns[1]]
+    cell.size <- scale.cellsize * sqrt(2) * sqrt(sf::st_area(boundary) / nrow(input))
+    f.grid <- sf::st_make_grid(boundary, cellsize = rep(cell.size, 2))
+    f.grid.int <- sf::st_intersects(f.grid, input)
+    f.grid.int <- unlist(lengths(f.grid.int))
+    f.grid <- f.grid[f.grid.int > 0]
+    if (is.null(trial.design)) {trial.design <- sf::st_as_sf(f.grid)}
+
+    moisture <- input[[data.columns[2]]]
+    units(moisture) <- units::as_units(data.units[2])
+    units(moisture) <- units::as_units('%')
+    attributes(moisture) <- NULL
+
+    if(is.null(moisture.adj)) {moisture.adj <- mean(moisture)}
+
+    tgt[[1]] <- .pa_moisture(tgt[[1]], crt = moisture, to = 0, verbose)
+    if(clean) tgt <- .pa_clean_yield_monitor(tgt, data.columns[1], boundary, clean.edge.distance, clean.sd, verbose)
+
+
+    app.pols <- aggregate(tgt, f.grid, mean)
+    names(app.pols) <- c('mass', 'geometry')
+    app.pols <- subset(app.pols, !is.na(mass))
+    app.pols$mass[is.na(app.pols$mass)] <- NULL
+
+    if (data.units[1] %in% c('bu/ac', 'bushel/acre')) {
+      app.pols$mass <- .pa_bushel_metric(app.pols$mass, lbs.per.bushel, 'metric', 1)
+    }else{
+      units(app.pols$mass) <- units::as_units(data.units[1])
+      units(app.pols$mass) <- units::make_units(g/m2)
+      attributes(app.pols$mass) <- NULL
+    }
+
+  }
+
+
+  if (algorithm == 'ritas') {
+
+    ## handling units and column names
+    exp.order <- c('flow', 'moisture', 'interval', 'angle', 'width', 'distance')
+    if (is.null(data.columns)) data.columns <- rep(NA, 6)
+    if (is.null(data.units)) data.units <- rep(NA, 6)
+    if(is.null(names(data.columns))) names(data.columns) <- exp.order
+    if(is.null(names(data.units))) names(data.units) <- exp.order
+    data.units <- data.units[exp.order]
+    data.columns <- data.columns[exp.order]
+
+    if(lag.adj > 0) {
+      int.names <- .pa_get_variable_names('interval')
+      int.col <-  which(tolower(names(input)) %in% int.names)
+      input <- pa_adjust_lag(input, lag.adj, int.col)
+    }
+
+    ## keeping track of the units. I intend this to prevent mistakes.
+    flow <- .pa_get_variable(input, 'flow', data.units['flow'], data.columns['flow'], verbose)
+    moisture <- .pa_get_variable(input, 'moisture', data.units['moisture'], data.columns['moisture'], verbose)
+    interval <- .pa_get_variable(input, 'interval', data.units['interval'], data.columns['interval'], verbose)
+    angle <- .pa_get_variable(input, 'angle', data.units['angle'], data.columns['angle'], verbose)
+    if(is.null(angle)) {
+      if(verbose) cat('Trajectory angle not found. Estimating it from geographical coordinates.\n')
+      angle <- .pa_estimate_angle(sf::st_geometry(input))
+    }
+    swath <- .pa_get_variable(input, 'width', data.units['width'], data.columns['width'], verbose)
+    distance <- .pa_get_variable(input, 'distance', data.units['distance'], data.columns['distance'], verbose)
+    ## checking that all necessary variables were found
+    not.found <- sapply(list(flow, moisture, interval, angle, swath, distance), is.null)
+    if(any(not.found)) {
+      not.found.i <- which(not.found == TRUE)
+      stop('Unable to find column(s): ', paste(exp.order[not.found.i], collapse = ', '))
+    }
+
+    ## Begining the RITAS steps
+    mass <- pa_flow2mass(flow, interval, moisture)
+
+    units(moisture) <- NULL
+    if(is.null(moisture.adj)) {moisture.adj <- mean(moisture)}
+
+    ## Now, we can drop the units because we know which units are
+    ## in and out of each operation
+    swath <- units::drop_units(swath)
+    distance <- units::drop_units(distance)
+    angle <- units::drop_units(angle)
+
+    v.pols <- pa_make_vehicle_polygons(sf::st_geometry(input),
+                                       swath,
+                                       distance,
+                                       angle,
+                                       cores = cores,
+                                       verbose = verbose)
+
+    adj.pols <- pa_adjust_obs_effective_area(v.pols,
+                                             mass,
+                                             var.label = 'mass',
+                                             overlap.threshold = overlap.threshold,
+                                             cores = cores,
+                                             verbose = verbose)
+
+    if(clean) adj.pols <- .pa_clean_yield_monitor(adj.pols, 'adj.mass', boundary, clean.edge.distance, clean.sd, verbose)
+
+
+   app.pols <- pa_apport_mass(polygons =  sf::st_geometry(adj.pols),
+                               mass.vector = adj.pols$adj.mass,
+                               boundary = boundary,
+                               scale.cellsize = scale.cellsize,
+                               cores = cores)
+
+  }
+
+## the following steps are the same regardless of the algorithm
+
+  if (is.null(trial.design)){
+    trial.design <- sf::st_as_sf(sf::st_geometry(app.pols))
+  }else{
+    if(sf::st_crs(trial.design) != sf::st_crs(input)){
+      trial.design <- sf::st_transform(trial.design, sf::st_crs(input))
+    }
+    trial.design <- cbind(trial.design, suppressWarnings(sf::st_coordinates(sf::st_centroid(trial.design))))
+  }
+
+  if (is.null(formula)) {
+    form <- formula(z ~ 1)
+  }else{
+    form <- formula(formula)
+  }
+
+
+  if (smooth.method == 'krige'){
+    app.pols$mass <- .pa_moisture(app.pols$mass, 0, moisture.adj, verbose)
+    app.pols$mass[app.pols$mass == 0] <- 1e-6
+    app.pols$z <- app.pols$mass
+    app.pols <- cbind(app.pols, suppressWarnings(sf::st_coordinates(sf::st_centroid(app.pols))))
+      app.pols <- subset(app.pols, !is.na(mass))
+      preds <- .pa_predict(formula = form,
+                           smooth.method = smooth.method,
+                           df = app.pols,
+                           new.df = trial.design,
+                           cores = cores,
+                           fun = fun,
+                           verbose = verbose,
+                           ...)
+
+      variogram.model <- preds[[2]]
+      variogram <- preds[[3]]
+      preds <- preds[[1]]
+      predicted.var <- data.frame(preds$var1.pred, preds$var1.var)
+      names(predicted.var) <- c(var.label, paste0(var.label,'.var'))
+      preds <- cbind(preds, predicted.var)
+      preds <- preds[c(var.label,  paste0(var.label,'.var'), 'geometry')]
+      preds[[1]] <- .pa_unit_system(preds[[1]], unit.system, lbs.per.bushel)
+      preds[[2]] <- .pa_unit_system(preds[[2]], unit.system, lbs.per.bushel, 2)
+      attr(preds[[2]], 'units') <- paste(unlist(units(preds[[2]])[1:2]), collapse = '/')
+      attributes(preds[[2]]) <- NULL
+  }
+
+  if (smooth.method == 'idw'){
+
+    if (form != formula(z ~ 1)){
+      stop('The IDW smoothing method does not allow for predictors in the formula. The "formula" argument should be: z ~ 1')
+      }
+
+    app.pols$z <- app.pols$mass
+    app.pols <- subset(app.pols, !is.na(mass))
+    preds <- .pa_predict(formula = form,
+                         smooth.method = smooth.method,
+                         df = app.pols,
+                         new.df = trial.design,
+                         cores = cores,
+                         verbose = verbose,
+                         ...)
+
+    variogram.model <- NULL
+    variogram <- NULL
+    preds <- preds[[1]]
+
+    predicted.var <- data.frame(preds$var1.pred)
+    names(predicted.var) <- var.label
+    preds <- cbind(preds, predicted.var)
+    preds <- preds[c(var.label, 'geometry')]
+    preds[[1]] <- .pa_moisture(preds[[1]], 0, moisture.adj, verbose)
+    preds[[1]] <- .pa_unit_system(preds[[1]], unit.system, lbs.per.bushel)
+    }
+  if (smooth.method == 'none'){
+      if(suppressWarnings(all(sf::st_geometry(app.pols) == sf::st_geometry(trial.design)))) {
+        preds <- app.pols['mass']
+      }else{
+        app.pols$mass[is.na(app.pols$mass)] <- NULL
+        preds <- suppressWarnings( sf::st_interpolate_aw(app.pols['mass'], trial.design, extensive = FALSE))
+      }
+      preds[['mass']] <- .pa_moisture(preds[['mass']], 0, moisture.adj, verbose)
+      preds[['mass']] <- .pa_unit_system(preds[['mass']], unit.system, lbs.per.bushel)
+      names(preds) <- c(var.label, 'geometry')
+      preds <- preds[c(var.label, 'geometry')]
+      variogram.model <- NULL
+      variogram <- NULL
+  }
+
+  attr(preds, 'moisture') <- moisture.adj
+  attr(preds, 'units') <-paste(unlist(units(preds[[var.label]])[1:2]), collapse = '/')
+  attributes(preds[[var.label]]) <- NULL
+
+  res <- list(yield = preds,
+              variogram = variogram,
+              variogram.model = variogram.model)
+
+return(res)
+}
+
+
+
+
+
+
+
+

@@ -1,0 +1,247 @@
+
+run.test <-  get(".run.experimental.tests", envir = pacu.options)
+
+if(run.test){
+  require(pacu)
+  require(sf)
+
+
+
+  ## reading the Basswood data
+  raw.files <- list.files('./tests-data/basswood',
+                          pattern = '[^all]\\.shp$',
+                          recursive = TRUE,
+                          full.names = TRUE)
+
+  cols <- function(n) {hcl.colors(n, 'Temps', rev = TRUE)}
+
+  ## selecting the 2012 data set to test
+  i <- 16
+  cores <- 20
+  raw.yield <- st_read(raw.files[i])
+
+
+  ## the data in the 'dry_bu_ac' columns seems to be already corrected to 0% moisture
+  ## this would explain why we were seeing a yield decrease with ritas... we are correcting
+  ## the moisture of this data twice...
+  raw.yield$MOISTURE0 <- 0
+
+
+  devtools::load_all()
+  pa_check_yield(input = raw.yield, algorithm = 'ritas')
+
+  ## Simple algorithm ----
+  ### No smoothing ----
+  yld.simple.none <- pa_yield(input  = raw.yield,
+                              algorithm = 'simple',
+                              data.columns = c('DRY_BU_AC', 'MOISTURE0'),
+                              data.units = c('bushel/acre', '%'),
+                              lbs.per.bushel  = 56,
+                              cores = cores,
+                              moisture.adj = 15.5,
+                              unit.system = 'metric',
+                              smooth.method  = 'none',
+                              clean = TRUE,
+                              verbose = 1)
+
+  png('./tests-results/algorithms/simple-none.png',
+      width = 6 * 300, height = 5 * 300, res = 300)
+  pa_plot(yld.simple.none, scale = 2)
+  dev.off()
+
+  ### IDW smoothing ----
+  yld.simple.idw <- pa_yield(input  = raw.yield,
+                             algorithm = 'simple',
+                             data.columns = c('DRY_BU_AC', 'MOISTURE'),
+                             data.units = c('bushel/acre', '%'),
+                             unit.system = 'metric',
+                             lbs.per.bushel = 56,
+                             cores = cores,
+                             moisture.adj = 15.5,
+                             smooth.method  = 'idw',
+                             verbose = 2,
+                             maxdist = 50)
+
+
+  png('./tests-results/algorithms/simple-idw.png',
+      width = 6 * 300, height = 5 * 300, res = 300)
+  pa_plot(yld.simple.idw, scale = 2)
+  dev.off()
+
+  ## IDW power 8 ----
+  yld.simple.idw8 <- pa_yield(input  = raw.yield,
+                              algorithm = 'simple',
+                              data.columns = c('DRY_BU_AC', 'MOISTURE'),
+                              data.units = c('bushel/acre', '%'),
+                              lbs.per.bushel = 56,
+                              unit.system = 'metric',
+                              cores = cores,
+                              moisture.adj = 15.5,
+                              smooth.method  = 'idw',
+                              verbose = TRUE,
+                              idp = 8,
+                              maxdist = 50)
+
+
+  png('./tests-results/algorithms/simple-idw-power-8.png',
+      width = 6 * 300, height = 5 * 300, res = 300)
+  pa_plot(yld.simple.idw8, scale = 2)
+  dev.off()
+
+
+  ## IDW power 1 ----
+  yld.simple.idw1 <- pa_yield(input  = raw.yield,
+                              algorithm = 'simple',
+                              data.columns = c('DRY_BU_AC', 'MOISTURE'),
+                              data.units = c('bushel/acre', '%'),
+                              lbs.per.bushel = 56,
+                              cores = cores,
+                              moisture.adj = 15.5,
+                              smooth.method  = 'idw',
+                              verbose = TRUE,
+                              unit.system = 'metric',
+                              idp = 1,
+                              maxdist = 50)
+
+
+  png('./tests-results/algorithms/simple-idw-power-1.png',
+      width = 6 * 300, height = 5 * 300, res = 300)
+  pa_plot(yld.simple.idw1, scale = 2)
+  dev.off()
+
+
+  ### Simple w/ grid ----
+  ### No smoothing ----
+  yld.simple.grid.none <- pa_yield(input  = raw.yield,
+                              grid = st_make_grid(raw.yield, n = c(50, 50)),
+                              algorithm = 'simple',
+                              data.columns = c('DRY_BU_AC', 'MOISTURE0'),
+                              data.units = c('bushel/acre', '%'),
+                              lbs.per.bushel  = 56,
+                              cores = cores,
+                              moisture.adj = 15.5,
+                              unit.system = 'metric',
+                              smooth.method  = 'none',
+                              clean = TRUE,
+                              verbose = 1)
+
+  png('./tests-results/algorithms/simple-grid-none.png',
+      width = 6 * 300, height = 5 * 300, res = 300)
+  pa_plot(yld.simple.grid.none, scale = 2)
+  dev.off()
+
+  ### IDW smoothing ----
+  yld.simple.grid.idw <- pa_yield(input  = raw.yield,
+                              grid = st_make_grid(raw.yield, n = c(50, 50)),
+                             algorithm = 'simple',
+                             data.columns = c('DRY_BU_AC', 'MOISTURE'),
+                             data.units = c('bushel/acre', '%'),
+                             unit.system = 'metric',
+                             lbs.per.bushel = 56,
+                             cores = cores,
+                             moisture.adj = 15.5,
+                             smooth.method  = 'idw',
+                             verbose = 2,
+                             maxdist = 50)
+
+
+  png('./tests-results/algorithms/simple-grid-idw.png',
+      width = 6 * 300, height = 5 * 300, res = 300)
+  pa_plot(yld.simple.grid.idw, scale = 2)
+  dev.off()
+
+  ### Kriging ----
+  ### 13.18 minutes
+  yld.simple.kr <- pa_yield(input  = raw.yield,
+                            algorithm = 'simple',
+                            data.columns = c('DRY_BU_AC', 'MOISTURE'),
+                            data.units = c('bushel/acre', '%'),
+                            lbs.per.bushel = 56,
+                            cores = cores,
+                            unit.system = 'metric',
+                            moisture.adj = 15.5,
+                            smooth.method  = 'krige',
+                            verbose = TRUE)
+
+  png('./tests-results/algorithms/simple-krige.png',
+      width = 6 * 300, height = 5 * 300, res = 300)
+  pa_plot(yld.simple.kr, scale = 2)
+  dev.off()
+
+
+
+  ### Kriging with max distance = 50 ----
+  yld.simple.kr50 <- pa_yield(input  = raw.yield,
+                              grid = st_make_grid(raw.yield, 0.0001),
+                              algorithm = 'simple',
+                              data.columns = c('DRY_BU_AC', 'MOISTURE'),
+                              data.units = c('bushel/acre', '%'),
+                              cores = cores,
+                              unit.system = 'metric',
+                              moisture.adj = 15.5,
+                              lbs.per.bushel = 56,
+                              smooth.method  = 'krige',
+                              verbose = 2,
+                              maxdist = 50)
+
+  png('./tests-results/algorithms/simple-krige-maxdist-50.png',
+      width = 6 * 300, height = 5 * 300, res = 300)
+  pa_plot(yld.simple.kr50, scale = 2)
+  dev.off()
+
+  ## Ritas ----
+  ### No smoothing ----
+  yld.ritas.none <- pa_yield(input  = raw.yield,
+                             algorithm = 'ritas',
+                             cores = cores,
+                             moisture.adj = 15.5,
+                             lbs.per.bushel = 56,
+                             unit.system = 'metric',
+                             smooth.method = 'none',
+                             clean = TRUE,
+                             verbose = TRUE)
+
+  png('./tests-results/algorithms/ritas-notkrige.png',
+      width = 6 * 300, height = 5 * 300, res = 300)
+  pa_plot(yld.ritas.none)
+  dev.off()
+
+  ### IDW Smoothing ----
+  yld.ritas.idw <- pa_yield(input  = raw.yield,
+                            algorithm = 'ritas',
+                            cores = cores,
+                            moisture.adj = 15.5,
+                            lbs.per.bushel  = 56,
+                            unit.system = 'metric',
+                            smooth.method = 'idw',
+                            verbose = TRUE)
+
+
+  png('./tests-results/algorithms/ritas-idw.png',
+      width = 6 * 300, height = 5 * 300, res = 300)
+  pa_plot(yld.ritas.idw)
+  dev.off()
+
+  ## Kriging ----
+  start <- Sys.time()
+  yld.ritas.krige <- pa_yield(input  = raw.yield,
+                              algorithm = 'ritas',
+                              cores = 10,
+                              moisture.adj = 15.5,
+                              lbs.per.bushel  = 56,
+                              unit.system = 'metric',
+                              smooth.method = 'krige',
+                              verbose = TRUE)
+  end <- Sys.time()
+  print(end - start)
+
+  png('./tests-results/algorithms/ritas-krige.png',
+      width = 6 * 300, height = 5 * 300, res = 300)
+  pa_plot(yld.ritas.krige)
+  dev.off()
+
+
+
+
+}
+
