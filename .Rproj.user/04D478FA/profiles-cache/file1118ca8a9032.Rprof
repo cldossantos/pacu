@@ -1,4 +1,0 @@
-memory profiling: GC profiling: line profiling: sample.interval=10000
-:4869597:10872014:368220776:1719:"<Anonymous>" "as.data.frame.list" "profvis::profvis" 
-:4878987:10872270:370043240:1206:"CPL_crs_parameters" "crs_parameters" "st_is_longlat" "st_area.sfc" "st_area.sf" "pa_adjust_obs_effective_area2" "profvis::profvis" 
-:4889402:10872633:372118376:1241:"structure" "st_crs<-.sfc" "st_sfc" "[.sfc" "[.sf" "subset.data.frame" "pa_adjust_obs_effective_area2" "profvis::profvis" 
