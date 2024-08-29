@@ -1,2 +1,0 @@
-memory profiling: GC profiling: line profiling: sample.interval=10000
-:6332828:8861966:396813200:901:"doTryCatch" "tryCatchOne" "tryCatchList" "tryCatch" "try" "as_units.character" "crs_parameters" "st_is_longlat" "st_as_s2.sfc" "as_s2_geography.sfc" "s2::s2_difference" "profvis::profvis" 
