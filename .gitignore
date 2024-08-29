@@ -4,3 +4,4 @@ inst/doc
 tests-data
 tests-deprecated
 tests-results
+.R*
