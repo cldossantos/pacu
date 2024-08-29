@@ -1,0 +1,249 @@
+---
+title: "pacu: Precision Agriculture Computational Utilities - Satellite data"
+author: "Caio dos Santos & Fernando Miguez"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{pacu: Precision Agriculture Computational Utilities - Satellite data}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+  
+# Satellite data
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(sf)
+library(pacu)
+```
+
+## Interacting with the OData API
+
+### Setting up your credentials
+
+The first step is to register the [Data Space](https://dataspace.copernicus.eu/) credentials to the R environment using ***pa_intialize_dataspace()***
+
+```{r initializing-data-space, eval = FALSE}
+un <- 'my-username'
+pw <- 'my-password'
+pa_initialize_dataspace(username = un, password = pw)
+```
+
+### Browsing the Data Space catalog
+
+Let us define our area of interest. In this example, we are
+interested in a field in Ames, Iowa, U.S.
+
+```{r defining-area-of-interest}
+extd.dir <- system.file("extdata", package = "pacu")
+area.of.interest <- sf::st_read(file.path(extd.dir, 'cobs_a_aoi.shp'), quiet = TRUE)
+```
+
+Now, we can browse the Data Space catalog for images that
+meet our requirements. We can specify these requirements in
+by passing arguments to the **pa_browse_dataspace()**
+function. The function allows us to filter the satellite
+image using information such as dates, cloud coverage, and
+satellite platform. In this case, we are interested in
+images captured by Sentinel 2, with a maximum of 50% of
+cloud coverage, and in the year of 2023.
+
+```{r browsing-data-space, eval = FALSE}
+available.images <- pa_browse_dataspace(aoi = area.of.interest,
+                                        max.cloud.cover = 50,
+                                        start.date = '2023-01-01',
+                                        end.date = '2023-12-31',
+                                        collection.name = 'SENTINEL-2')
+
+```
+
+Each entry in the data frame returned by the function is a
+satellite image available to be downloaded from Data Space.
+In this case, we can see that there are 68 images the meet
+our requirements.
+
+```{r reading-browse-ds, include=FALSE}
+available.images <- readRDS(file.path(extd.dir, 'ds-browse-object.rds'))
+```
+
+```{r inspecting-browse-ds}
+available.images
+```
+
+Using the "summary" function, we can extract the number of
+available images for every month in the data set.
+```{r summary-browse-ds}
+summary(available.images)
+```
+
+
+### Downloading satellite images from Data Space
+
+The next step would be to download the images. If we supply
+the ***available.images*** object to the function
+***download_dataspace()***, the function will download all 68
+available images. For this demonstration, we can focus only
+on two images. Let's pick the 32nd and 33rd images because
+these were captured in mid-July, so there should be maize or
+soybeans in the field.
+
+An important consideration is that these images occupy a
+considerable amount of storage (about 500 Mb each), this
+means that downloading 68 images would take up about 35 Gb
+of storage. By providing an ***area of interest (aoi)*** to
+the function, it will open the raw file and crop the
+images to the relevant extent. This was designed to save storage
+space when downloading multiple images.
+
+```{r downloading-an-image, eval=FALSE}
+out.dir <- tempdir()
+available.images <- available.images[32:33, ]
+pa_download_dataspace(x = available.images,
+                      dir.path = out.dir,
+                      aoi = area.of.interest)
+```
+
+```{r out-equal-ext, include=FALSE}
+out.dir <- extd.dir
+```
+
+### Visualizing downloaded images
+
+Now that we have downloaded the data, we might be interested
+in looking at RGB images.
+
+```{r rgb-img, fig.width=7, fig.height=5}
+s2.files <- list.files(out.dir, '\\.zip', full.names = TRUE)
+rgb.img <- pacu::pa_get_rgb(s2.files, aoi = area.of.interest)
+pa_plot(rgb.img)
+```
+
+Similarly, we might be interested in NDVI or NDRE...
+```{r, ndvi-img,  fig.width=7, fig.height=5}
+ndvi.img <- pa_compute_vi(s2.files,
+                          vi = 'ndvi', 
+                          aoi = area.of.interest)
+
+ndre.img <- pa_compute_vi(s2.files, 
+                          vi = 'ndre',
+                          aoi = area.of.interest)
+
+pa_plot(ndvi.img, main = 'NDVI')
+pa_plot(ndre.img, main = 'NDRE')
+```
+
+## Areal summary
+
+Often, in precision agriculture applications, we are
+interested in a summary value per experimental unit to
+evaluate the effect of an applied treatment. This statistic
+is commonly the mean or median of the pixels within the
+polygon representing the research plot or the area of
+interest. To illustrate how that can be achieved within
+pacu, we can split our area of interest in four smaller
+areas and then compute and visualize summary statistics.
+
+```{r  ndvi-img-summary,  fig.width=7, fig.height=5}
+split.aoi <- st_make_grid(area.of.interest, n = c(4, 1))
+split.aoi <- st_as_sf(split.aoi)
+split.aoi <- st_transform(split.aoi, st_crs(ndvi.img))
+ndvi.mean <- summary(ndvi.img, by = split.aoi, fun = mean)
+pa_plot(ndvi.mean)
+```
+
+## Interacting with the Copernicus Statistical API
+
+The Data Space Statistics API allows users to download areal
+statistics calculated based on satellite images without
+having to download images. The Statistics API uses OAuth2.0
+authentication with ***client id*** and ***client secret***.
+To use the functions that interact with the Satistics API,
+you will need to [register an OAuth client](https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Overview/Authentication.html).
+
+### Setting up your credentials
+ 
+```{r registering-oauth, eval = FALSE}
+cid <- 'my-client-id'
+cs <- 'my-client-secret'
+pa_initialize_oauth(client_id = cid, client_secret = cs)
+```
+
+### Requesting areal statistics
+
+Now that your Oauth client credentials have been registered,
+you can request vegetation index statistics using the
+Statistics API. Let us request NDVI data for our area of
+interest.
+
+```{r requesting-ndvi-statistics, eval = FALSE}
+ndvi.statistics <- pa_get_vi_stats(aoi = area.of.interest,
+                                   start.date = '2022-01-01',
+                                   end.date = '2022-12-31',
+                                   vegetation.index = 'ndvi',
+                                   agg.time = 'P1D')
+```
+
+```{r reading-ndvi-statistics, include = FALSE}
+ndvi.statistics <- readRDS(file.path(extd.dir, 'example-ndvi-stats.rds'))
+```
+
+The ***pa_plot()*** function helps us visualize the data in
+a spatial context. Since we have requested the NDVI
+statistics for one polygon, it us to be expected that within
+each facet representing a date, there is only one color.
+
+```{r plotting-ndvi-statistics-paplot, fig.width=7, fig.height=5}
+pa_plot(ndvi.statistics)
+```
+
+
+Conversely, if we are more interested in examining the data
+in a time series format, we can visualize the data by
+plotting the minimum, maximum, and mean NDVI in our area
+of interest.
+
+```{r vis-ndvi-stats, fig.width=7, fig.height = 5}
+with(as.data.frame(ndvi.statistics), {
+  plot(time, ndvi.min, col = 'steelblue', ylim = c(0, 1), ylab = 'NDVI')
+  points(time, ndvi.max, col = 'tomato1')
+  points(time, ndvi.mean, col = 'navyblue')
+  legend('topleft', pch = 1, col = c('steelblue', 'tomato1', 'navyblue'), legend = c('min', 'max', 'mean'))
+})
+
+
+```
+
+We might also be interested in comparing the index value
+from different regions of the field. Let us split the
+previous field in four parts and retrieve NDVI individually
+for each section, so we can compare the results.
+
+
+**note:** it is important to clarify that using the ***by.feature***
+argument will send multiple requests to the Statistical API. 
+The user should be mindful not to exceed their quota. 
+Quotas and limitations can be found [here](https://documentation.dataspace.copernicus.eu/Quotas.html)
+
+```{r requesting-ndre-statistics, eval = FALSE}
+ndvi.statistics.2 <- pa_get_vi_stats(aoi = split.aoi,
+                                     start.date = '2022-01-01',
+                                     end.date = '2022-05-01',
+                                     vegetation.index = 'ndvi',
+                                     agg.time = 'P1D',
+                                     by.feature = TRUE)
+```
+
+```{r reading-ndre-statistics, include = FALSE}
+ndvi.statistics.2 <- readRDS(file.path(extd.dir, 'example-ndvi-stats-2.rds'))
+```
+
+
+Now, we can visualize the different parts of the field in a spatial and temporal context.
+```{r plotting-ndvi-statistics-multiple, fig.width=7, fig.height=5}
+pa_plot(ndvi.statistics.2)
+```
+
+
+

@@ -1,0 +1,88 @@
+---
+title: "pacu: Precision Agriculture Computational Utilities - Weather data"
+author: "Caio dos Santos & Fernando Miguez"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{pacu: Precision Agriculture Computational Utilities - Weather data}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+
+# Weather data
+
+## Obtaining weather data
+
+There are several packages and utilities that allow for downloading weather data. Here we use the **apsimx** package. This package has simple wrappers that 'get' weather from different sources:
+
+* Iowa Environmental Mesonet
+* NASA-POWER (via nasapower package)
+* DayMet (via daymetr package)
+* CHIRPS (via chirps package)
+
+For more details about getting and working with weather data see the **apsimx** package.
+
+## Using apsimx and pacu packages
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(apsimx)
+library(pacu)
+```
+
+
+### Gathering and summarizing weather data
+
+An alternative way of investigating the growing conditions
+experienced by crops in a given year would be to summarize
+the weather data and place it in a historical context. Let
+us download some weather data first.
+
+```{r download-weather, eval = FALSE}
+weather.met <- pa_get_weather_sf(area.of.interest, '1990-01-01', '2020-12-31')
+```
+
+```{r, include=FALSE}
+extd.dir <- system.file("extdata", package = "pacu")
+weather.met <- read_apsim_met('example-weather.met', extd.dir, verbose = FALSE)
+```
+
+We can make simple plots for precipitation or temperature. A
+filter is used to subset years 2017 to 2020 for easier
+interpretation.
+
+```{r simple-met-plot, fig.width=6}
+## Precipitation (or rain)
+plot(weather.met, met.var = "rain", cumulative = TRUE, 
+     climatology = TRUE, years = 2017:2020)
+## Temperature
+plot(weather.met, cumulative = TRUE, 
+     climatology = TRUE, years = 2017:2020)
+```
+
+There is a summary function for simple display of statistics
+
+```{r summary-weather-met}
+## Selecting just a few columns (1, 6, 7, 10) for simplicity
+summary(weather.met, years = 2017:2020)[, c(1, 6, 7, 10)]
+```
+
+The apsimx package does not produce complex graphs for
+weather data. This was included here to allow more detailed
+interpretation of crop performance data for a given
+location. In the pacu package we include functions which can
+summarize data in a historical context.
+
+```{r summarizing-weather-data, fig.width=6, fig.height=5}
+pa_plot(weather.met,
+        plot.type = 'climate_normals', 
+        unit.system = 'int')
+pa_plot(weather.met,
+        plot.type = 'monthly_distributions', 
+        unit.system = 'int', months = 5:10)
+
+
+```

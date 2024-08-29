@@ -1,0 +1,394 @@
+---
+title: "pacu: Precision Agriculture Computational Utilities - Yield monitor data"
+author: "Caio dos Santos & Fernando Miguez"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{pacu: Precision Agriculture Computational Utilities - Yield monitor data}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+# Yield monitor data
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(sf)
+library(pacu)
+```
+
+## Proposed workflow
+
+We propose the following workflow for processing raw yield
+monitor data:
+
+1.  Read the data in
+2.  Compute summary statistics and visualize the data
+3.  Check the yield data
+4.  Fix potential issues
+5.  Process the data
+6.  Examine the yield map
+
+To illustrate the functions that process at yield monitor
+data, we will look at data from a research paper named
+[Prairie strips improve biodiversity and the delivery of multiple ecosystem services from corn--soybean croplands](https://www.pnas.org/doi/abs/10.1073/pnas.1620229114).
+Let us, specifically, look at the data from 2012.
+
+### Reading the data in
+
+```{r reading-the-data}
+extd.dir <- system.file("extdata", package = "pacu")
+raw.yield <- st_read(file.path(extd.dir, '2012-basswood.shp'), quiet = TRUE)
+boundary <- st_read(file.path(extd.dir, 'boundary.shp'), quiet = TRUE)
+```
+
+We can see that the raw yield data has multiple columns.
+Some of them are more or less relevant depending on how we
+choose to process the data yield data to make a yield map.
+
+```{r}
+names(raw.yield)
+```
+
+### Compute summary statistics and visualize the data
+
+Our main objective in this step of the proposed workflow is
+to make sure that the data conforms to what we would expect
+of yield monitor data. For instance, we can examine the raw
+yield data or the distance between measurements.
+
+#### Examining the raw yield data
+
+```{r plotting-the-raw-data,  fig.width=6, fig.height=5}
+cols <- function(n) hcl.colors(n, 'Temps', rev = TRUE)
+plot(raw.yield['DRY_BU_AC'], pal = cols)
+```
+
+The boxplot shows some observations that appear to be
+abnormally high. These can be a result of sudden speed or
+direction change, GPS errors, and other sources of unknown
+variability.
+
+```{r boxplot-raw-yield, fig.width=6, fig.height=5}
+boxplot(raw.yield$DRY_BU_AC)
+```
+
+### Check the yield monitor data with pa_check_yield()
+
+In this step of the proposed workflow, the
+***pa_check_yield()*** function searches for potential
+sources of problem in the data to give the user the
+opportunity of dealing with these before processing the
+yield data. For instance, when no units are supplied to the
+***pa_yield()*** function, the function tries to guess the
+units. Since the ***pa_check_yield()*** function outputs the
+guessed units, the user can supply the units to the
+***pa_yield()*** function in case the function's guess is
+incorrect.
+
+The user can choose to check for potential errors that would
+occur with all the algorithms available to the function or
+specify which algorithm should the function target.
+
+```{r check-yield}
+pa_check_yield(input = raw.yield,
+               algorithm = 'all')
+
+```
+
+### Fix potential issues
+
+The ***pa_check_yield()*** function will search for several
+sources of problem that could prevent the ***pa_yield()***
+function from working correctly. Therefore, it is important
+to deal with the identified issues before processing the
+yield data.
+
+#### Example: missing yield column
+
+Let us imagine a scenario in which we want to use the simple
+algorithm to process the data. To do so, we need a column
+with the yield data. The ***pa_yield()*** and
+***pa_check_yield()*** functions will try to identify which
+columns of the input data frame contain the relevant
+information, and the units if those are not supplied. We can
+create a toy example in which the yield column has an
+uncommon name, preventing the functions from identifying it.
+
+```{r example-missing-col}
+toy.example <- raw.yield 
+names(toy.example) <- gsub('DRY_BU_AC', 'NOT_A_COMMON_NAME', names(toy.example))
+pa_check_yield(toy.example, algorithm = 'simple')
+```
+
+To deal with this issue, we can rename the column to a more
+common name such as "yield" or "YIELD". Additionally, a
+valid solution would be to provide the column name to the
+***pa_yield()*** function directly when processing the data.
+Here, we rename the column simply to "yield" and we can see
+that the algorithm is able to identify it once again.
+```{r}
+names(toy.example) <- gsub('NOT_A_COMMON_NAME', 'yield', names(toy.example))
+pa_check_yield(toy.example, algorithm = 'simple')
+```
+
+
+### Processing the data and examining the yield maps and diagnostic plots 
+
+
+The **pa_yield()** function can produce yield maps using two
+algorithms: simple and ritas. The **simple** algorithm
+allows moisture standardization, data cleaning, and
+smoothing. By default, it does not conduct any areal
+aggregations. The **ritas** algorithm ([Damiano & Niemi, 2020](https://arxiv.org/abs/2209.11313)) follows a
+constructive framework, in which the steps are:
+**r**ectangle creation; **i**ntersection assignment;
+**t**asselation; **a**pportioning; and **s**moothing.
+
+#### Simple aggregation of yield data
+
+##### Initial example
+
+When algorithm is **simple**, the function will search for
+the columns that indicate yield, moisture, and time. Note
+that, since different crops have a different conversion
+factors from bushel to pounds, it is important to specify
+the **lbs.per.bushel** argument when the US standard system
+of units is used. In this case, we are producing a yield map
+for a maize crop, thus, 56 lbs/bushel. Additionally, the
+function supports the output of the yield map in both U.S.
+standard and metric unit systems. In this
+example, we have chosen "metric".
+
+```{r first-ymp, message=FALSE}
+ymp1 <- pa_yield(input = raw.yield,
+                 boundary = boundary,
+                 algorithm = 'simple',
+                 lbs.per.bushel = 56,
+                 unit.system = 'metric',
+                 verbose = FALSE)
+```
+
+The "ymp1" object contains information on the yield
+processing algorithm, smoothing method, conversion factor
+used, moisture, and a summary of the yield data.
+
+```{r first-ymp-attr}
+ymp1
+```
+
+We can visualize the yield map by plotting it
+
+```{r plotting-first-ymp, fig.width=6, fig.height=5}
+pa_plot(ymp1)
+```
+
+##### Unit conversion and moisture adjustment
+
+In the previous map, we can see that the units are "t/ha".
+However, a user might want to produce yield maps using US
+standard units. Additionally, the user can set the moisture
+level to the market standard moisture. When no moisture
+adjustment is provided, the function adjusts the moisture
+level to the average moisture in the data set.
+
+```{r ymp2, message=FALSE}
+ymp2 <- pa_yield(input = raw.yield,
+                 boundary = boundary,
+                 algorithm = 'simple',
+                 unit.system = 'standard',
+                 moisture.adj = 15.5,
+                 lbs.per.bushel = 56,
+                 verbose = FALSE)
+```
+
+```{r ymp2-attr}
+ymp2
+```
+
+We can visualize the yield map in bushels/acre and at a
+moisture level of 15.5%
+
+```{r plotting-ymp2, fig.width=6, fig.height=5}
+pa_plot(ymp2)
+```
+
+##### Outlier removal
+
+In the previous maps we have conducted simple aggregation of
+yield data and standardization of the moisture content. We
+can, additionally, add a cleaning step to remove outliers in
+the raw yield data.
+
+```{r ymp3, message=FALSE}
+ymp3 <- pa_yield(input = raw.yield,
+                 boundary = boundary,
+                 algorithm = 'simple',
+                 unit.system = 'metric',
+                 clean = TRUE,
+                 clean.sd = 3,
+                 lbs.per.bushel = 56,
+                 verbose = FALSE)
+```
+
+This cleaning step will remove observations outside of a 3
+standard deviation range from the field mean. This will often 
+leave empty spots in the field if no smoothing method is selected. 
+
+```{r plotting-ymp3, fig.width=6, fig.height=5}
+pa_plot(ymp3)
+```
+
+##### Inverse distance weighted interpolation
+
+In cases in which we want to interpolate the date, the
+function can interpolate the yield map using two prediction
+methods: inverse distance weighted (IDW) and kriging. The
+IDW method is deterministic and is much faster than the
+kriging method. The kriging method is stochastic and the
+computation time scales with $O(n^{3})$, where *n* is the
+number of observations.
+
+Here, we can produce and interpolated yield map using the
+IDW method. By default, the function uses a power of 2, but
+that can be overridden by passing the argument **idp** to
+the function.
+
+If the argument **grid** is not specified, the function will
+provide smoothed predictions at the same points as the input
+data. This will provide predictions for any geometries data would have been removed during the cleaning step.
+
+```{r ymp4, message=FALSE}
+ymp4 <- pa_yield(input = raw.yield,
+                 boundary = boundary, 
+                 algorithm = 'simple',
+                 unit.system = 'metric',
+                 clean = TRUE,
+                 clean.sd = 3,
+                 smooth.method = 'idw',
+                 lbs.per.bushel = 56,
+                 verbose = FALSE)
+```
+
+```{r plotting-ymp4, fig.width=6, fig.height=5}
+ymp4
+pa_plot(ymp4)
+```
+
+##### Kriging
+
+Alternatively, we can interpolate the maps using the Kriging
+method. As noted earlier, the computational time scales
+quickly as the number of observations increases. Therefore,
+we will add the argument "maxdist" to decrease computational
+time. It should be noted that the value at which the user
+sets the "maxdist" argument should be determined after
+examining the variogram.
+
+```{r ymp5, eval = FALSE}
+ymp5 <- pa_yield(input = raw.yield,
+                 boundary = boundary,
+                 algorithm = 'simple',
+                 unit.system = 'metric',
+                 clean = TRUE,
+                 clean.sd = 3,
+                 smooth.method = 'krige',
+                 lbs.per.bushel = 56,
+                 verbose = FALSE,
+                 maxdist = 50)
+```
+
+```{r, include=FALSE}
+extd.dir <- system.file("extdata", package = "pacu")
+ymp5 <- readRDS(file.path(extd.dir, 'yield-map-5.rds'))
+```
+
+```{r plotting-ymp5, fig.width=6, fig.height=5}
+ymp5
+pa_plot(ymp5, plot.var = 'yield')
+```
+
+We can also investigate the variogram
+
+```{r plot-ymp5-variogram, fig.width=6, fig.height=5}
+pa_plot(ymp5, plot.type = 'variogram')
+```
+
+#### RITAS
+
+##### Initial example
+
+When algorithm is **ritas**, the function expects an
+argument **data.columns** that indicates crop mass or crop
+flow, moisture, interval, angle, swath, and distance.
+Additionally, the function expects an argument
+**data.units** to indicate the units of the data columns.
+When neither of the two previous arguments is provided, the
+function uses a dictionary of common names to try and search
+for these columns. Additionally, the function will attempt
+to guess the units of the columns.
+
+The **ritas** algorithm is more computationally intensive
+than the **simple** algorithm. Some of the steps can be sped
+up by specifying the argument "cores". This will allow
+paralellization of some of the processing steps.
+
+```{r ritas-initial-example, eval =FALSE}
+ymp6 <- pa_yield(input = raw.yield,
+                 algorithm = 'ritas',
+                 lbs.per.bushel = 56,
+                 unit.system = 'metric',
+                 verbose = FALSE)
+```
+
+In this case, since the function is able to guess the
+columns and the units correctly, this would be the same as
+the chunk below.
+
+
+```{r ritas-sp-units, eval=FALSE}
+ymp6 <- pa_yield(input = raw.yield,
+                 data.columns = c(flow = 'FLOW', moisture = 'MOISTURE', interval = 'CYCLES', width = 'SWATH', distance = 'DISTANCE'),
+                 data.units = c(flow = 'lb/s', moisture = '%', interval = 's', width = 'in', distance = 'in'),
+                 unit.system = 'metric',
+                 algorithm = 'ritas',
+                 verbose = FALSE,
+                 cores = 5) 
+
+```
+
+```{r, include=FALSE}
+ymp6 <- readRDS(file.path(extd.dir, 'yield-map-6.rds'))
+```
+
+```{r plotting-ymp6, fig.width=6, fig.height=5}
+pa_plot(ymp6)
+```
+
+##### Complete RITAS algorithm
+
+In the previous yield map, we did not conduct any smoothing, so technically we did not complete the **ritas** algorithm. Following the algorithm's steps, the best results should be expected by setting **smooth.method** to "krige". The function also includes the option to Krige in the log scale when the distribution of the yield data is heavily skewed. In this case, the argument **fun** should be set to **'log'**.
+
+```{r ritas-final, eval=FALSE}
+ymp7 <- pa_yield(input = raw.yield,
+                 boundary = boundary,
+                 algorithm = 'ritas',
+                 smooth.method = 'krige',
+                 unit.system = 'metric',
+                 cores = 8,
+                 lbs.per.bushel = 56,
+                 verbose = FALSE,
+                 maxdist = 50)
+
+```
+
+```{r, include=FALSE}
+ymp7 <- readRDS(file.path(extd.dir, 'yield-map-7.rds'))
+```
+
+```{r plotting-ymp7, fig.width=6, fig.height=5}
+ymp7
+pa_plot(ymp7)
+```
