@@ -1,5 +1,10 @@
 -   At this point this README will be notes on progress
 
+## 2024-08-31
+
+- We have finally cleared out all the latex errors from the documentation. Most of them were due to the vegetation index formulas in the `pa_compute_vi()` function documentation. 
+
+
 ## 2024-08-20
 
 - Caio tested the pacu workflow using the data from one of the fields that Peter Kyveryga shared with us (JF2001). The original data set did not have the swath or interval between measurements but those could be extracted from the manuscript shared with us. The nitrogen response we got is really clean. The results of this test are in "./test-deprecated/testing-kyveryga-dataset.R". 
