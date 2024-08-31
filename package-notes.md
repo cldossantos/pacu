@@ -1,4 +1,3 @@
--   At this point this README will be notes on progress
 
 ## 2024-08-31
 
