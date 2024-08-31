@@ -4,7 +4,7 @@ Title: Precision Agriculture Computational Utilities
 Version: 0.1.34
 Authors@R: c(person('dos Santos', 'Caio', email = 'clsantos@iastate.edu', role = c('aut', 'cre')),
              person('Miguez', 'Fernando', role = 'aut'))
-Description: The pacu package is intended to provide a variety of 
+Description: The `pacu` package is intended to provide a variety of 
     functions that are commonly used when processing data that 
     can be characterized as precision agriculture related. 
     For instance, there are functions to download and process 
@@ -26,7 +26,8 @@ Depends: R (>= 4.0.0)
 License: GPL (>= 3)
 Encoding: UTF-8
 VignetteBuilder: knitr
-RoxygenNote: 7.3.1
+BugReports: https://github.com/cldossantos/pacu/issues
+RoxygenNote: 7.3.2
 Imports:
         apsimx,
         gstat,
@@ -45,6 +46,4 @@ Suggests:
     mgcv,
     nasapower,
     spData,
-    testthat (>= 3.0.0),
     rmarkdown
-Config/testthat/edition: 3

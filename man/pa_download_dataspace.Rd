@@ -19,7 +19,7 @@ cropped to the aoi. This was designed to save storage
 space.}
 }
 \value{
-pa_download_dataspace returns a list of objects
+a list of objects
   that could not be downloaded
 }
 \description{
@@ -28,8 +28,8 @@ Download satellite products from the
   products
 }
 \details{
-pa_download_dataspace uses the object from
-  \sQuote{pa_browser_dataspace} to download the data from
+`pa_download_dataspace()` uses the object from
+  `pa_browse_dataspace()` to download the data from
   Copernicus Data Space. The aoi argument is optional but
   was designed to save storage space.
 }

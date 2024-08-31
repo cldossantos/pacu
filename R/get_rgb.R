@@ -4,7 +4,7 @@
 #' @name pa_get_rgb
 #' @param satellite.images list of file paths to the Sentinel 2 zip files
 #' @param aoi NULL or an sf object used to crop the RGB raster to an area of interest
-#' @param pixel.res pixel resolution used to retrieve the RGB image (10m, 20m, 30m)
+#' @param pixel.res pixel resolution used to retrieve the RGB image. Can be one of 10m, 20m, 30m.
 #' @param img.formats image formats to search for in the zipped file
 #' @param rgb.bands a vector containing the order of the RGB bands
 #' @details This is script that unzips the Sentinel 2 zipped file into a temporary folder, searches for the RGB,

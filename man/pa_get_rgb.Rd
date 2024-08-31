@@ -17,7 +17,7 @@ pa_get_rgb(
 
 \item{aoi}{NULL or an sf object used to crop the RGB raster to an area of interest}
 
-\item{pixel.res}{pixel resolution used to retrieve the RGB image (10m, 20m, 30m)}
+\item{pixel.res}{pixel resolution used to retrieve the RGB image. Can be one of 10m, 20m, 30m.}
 
 \item{img.formats}{image formats to search for in the zipped file}
 

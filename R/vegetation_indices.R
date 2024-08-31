@@ -1,26 +1,40 @@
 #'
-#' @title Compute vegetation indices from a zipped Sentinel 2 file
-#' @description Compute vegetation indices from a zipped Sentinel 2 file.
+#' @title Compute vegetation indices from a zipped Sentinel
+#'   2 file
+#' @description Compute vegetation indices from a zipped
+#'   Sentinel 2 file.
 #' @name pa_compute_vi
 #' @rdname pa_compute_vi
-#' @param satellite.images list of file paths to the Sentinel 2 zip files
+#' @param satellite.images list of file paths to the
+#'   Sentinel 2 zip files
 #' @param vi the vegetation index to be computed
-#' @param aoi NULL or an sf object used to crop the vegetation index raster to an area of interest
-#' @param check.clouds whether to check for clouds over the area of interest. If clouds are found, the function will skip cloudy images.
-#' @param buffer.clouds distance in meters around the area of interest within a cloud would be considered to interfere with the index calculation. This is useful to eliminate the effect of cloud shading from the analysis.
-#' @param pixel.res pixel resolution used to compute the vegetation index (10m, 20m, 30m)
-#' @param img.formats image formats to search for in the zipped file
-#' @details This is script that unzips the Sentinel 2 zipped file into a temporary folder, searches for the index-relevant bands, and then computes the index.
-#' If no \sQuote{aoi} is provided, the script will compute the vegetation index for the area covered by the image.
-#' The vegetation indices are computed as follows:
-#' \tabular{c}{
-#' \deqn{BSI = \frac{(SWIR + RED) - (NIR + BLUE)}{(SWIR + RED) + (NIR + BLUE)}} \cr
-#' \deqn{EVI = \frac{2.5 \times (NIR - RED)}{(NIR + (6 \times RED) - (7.5 \times BLUE) - 1) }} \cr
-#' \deqn{GCVI = \frac{(NIR)}{(GREEN)} - 1}\cr
-#' \deqn{NDRE = \frac{(NIR - RED edge)}{(NIR + RED edge)}} \cr
-#' \deqn{NDVI = \frac{(NIR - RED)}{(NIR + RED)}} \cr
-#' \deqn{RECI = \frac{(NIR)}{(RED edge)} - 1}
-#' }
+#' @param aoi NULL or an sf object used to crop the
+#'   vegetation index raster to an area of interest
+#' @param check.clouds whether to check for clouds over the
+#'   area of interest. If clouds are found, the function
+#'   will skip cloudy images.
+#' @param buffer.clouds distance in meters around the area
+#'   of interest within a cloud would be considered to
+#'   interfere with the index calculation. This is useful to
+#'   eliminate the effect of cloud shading from the
+#'   analysis.
+#' @param pixel.res pixel resolution used to compute the
+#'   vegetation index. Can be one of 10m, 20m, 30m
+#' @param img.formats image formats to search for in the
+#'   zipped file
+#' @details This is script that unzips the Sentinel 2 zipped
+#'   file into a temporary folder, searches for the
+#'   index-relevant bands, and then computes the index. If
+#'   no \sQuote{aoi} is provided, the script will compute
+#'   the vegetation index for the area covered by the image.
+#'   The vegetation indices are computed as follows:
+#'   \deqn{BSI = \frac{(SWIR + RED) - (NIR + BLUE)}{(SWIR + RED) + (NIR + BLUE)}}
+#'   \deqn{EVI = \frac{2.5 \times (NIR - RED)}{(NIR + (6 \times RED) - (7.5 \times BLUE) - 1) }}
+#'   \deqn{GCVI = \frac{(NIR)}{(GREEN)} - 1}
+#'   \deqn{NDRE = \frac{(NIR - RED edge)}{(NIR + RED edge)}} 
+#'   \deqn{NDVI = \frac{(NIR - RED)}{(NIR + RED)}} 
+#'   \deqn{RECI = \frac{(NIR)}{(RED edge)} - 1}
+#' 
 #' @return an object of class veg.index and stars
 #' @author Caio dos Santos and Fernando Miguez
 #' @export

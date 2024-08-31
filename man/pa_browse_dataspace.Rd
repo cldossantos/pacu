@@ -12,18 +12,17 @@ pa_browse_dataspace(
   max.cloud.cover = 100,
   collection.name = c("SENTINEL-2"),
   product.name = c("MSIL2A"),
-  max.results = 1000,
-  url = "https://catalogue.dataspace.copernicus.eu/odata/v1/Products"
+  max.results = 1000
 )
 }
 \arguments{
 \item{aoi}{sf object used to filter satellite products}
 
 \item{start.date}{beginning of the time window to filter
-satellite products. The date format should be "\%Y-\%m-\%d".}
+satellite products. The date format should be `\%Y-\%m-\%d`.}
 
 \item{end.date}{end of the time window to filter
-satellite products. The date format should be "\%Y-\%m-\%d".}
+satellite products. The date format should be `\%Y-\%m-\%d`.}
 
 \item{max.cloud.cover}{maximum cloud cover. Values should
 be between 0 and 100. Images with cloud cover
@@ -38,12 +37,9 @@ filter products. Currently, only supports MSIL2A.
 We plan to expand this in the future.}
 
 \item{max.results}{maximum number of results to return}
-
-\item{url}{Copernicus API url. Do not change this unless
-Copernicus issues a new API.}
 }
 \value{
-pa_browse_dataspace returns a list of entries
+a list of entries
   available for download
 }
 \description{
@@ -51,7 +47,7 @@ Browse satellite products from the
   Copernicus Data Space Ecosystem
 }
 \details{
-pa_browse_dataspace will use HTTP requests to
+`pa_browse_dataspace()` will use HTTP requests to
   communicate with the Data Space API and search for
   available satellite products matching the filters
   established by the function parameters.

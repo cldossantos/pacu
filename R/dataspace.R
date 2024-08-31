@@ -9,7 +9,7 @@
 #'   request
 #' @param password password used to authenticate the HTTP
 #'   request
-#' @details pa_initialize_dataspace registers the username
+#' @details `pa_initialize_dataspace()` registers the username
 #'   and password to the machine's R environment. All the
 #'   other functions that rely on authentication will search
 #'   for the username and password in the R environment. Do
@@ -88,9 +88,9 @@ pa_initialize_dataspace <- function(username, password) {
 #' @rdname pa_browse_dataspace
 #' @param aoi sf object used to filter satellite products
 #' @param start.date beginning of the time window to filter
-#' satellite products. The date format should be "\%Y-\%m-\%d".
+#' satellite products. The date format should be `\%Y-\%m-\%d`.
 #' @param end.date end of the time window to filter
-#' satellite products. The date format should be "\%Y-\%m-\%d".
+#' satellite products. The date format should be `\%Y-\%m-\%d`.
 #' @param max.cloud.cover maximum cloud cover. Values should
 #'   be between 0 and 100. Images with cloud cover
 #'   assessment greater than this parameter will be removed
@@ -101,13 +101,11 @@ pa_initialize_dataspace <- function(username, password) {
 #'   filter products. Currently, only supports MSIL2A.
 #'   We plan to expand this in the future.
 #' @param max.results maximum number of results to return
-#' @param url Copernicus API url. Do not change this unless
-#'   Copernicus issues a new API.
-#' @details pa_browse_dataspace will use HTTP requests to
+#' @details `pa_browse_dataspace()` will use HTTP requests to
 #'   communicate with the Data Space API and search for
 #'   available satellite products matching the filters
 #'   established by the function parameters.
-#' @return pa_browse_dataspace returns a list of entries
+#' @return  a list of entries
 #'   available for download
 #' @author Caio dos Santos and Fernando Miguez
 #' @export
@@ -128,9 +126,10 @@ pa_browse_dataspace<- function(aoi,
                                max.cloud.cover = 100,
                                collection.name = c('SENTINEL-2'),
                                product.name = c('MSIL2A'),
-                               max.results = 1000,
-                               url = 'https://catalogue.dataspace.copernicus.eu/odata/v1/Products'){
+                               max.results = 1000){
 
+  
+  url <-  'https://catalogue.dataspace.copernicus.eu/odata/v1/Products'
   req.namespaces <- c('jsonlite', 'httr')
   for (ns in req.namespaces) {
     if(!requireNamespace(ns, quietly = TRUE)){
@@ -245,11 +244,11 @@ pa_browse_dataspace<- function(aoi,
 #'   (aoi) is provided, the downloaded zip files will be
 #'   cropped to the aoi. This was designed to save storage
 #'   space.
-#' @details pa_download_dataspace uses the object from
-#'   \sQuote{pa_browser_dataspace} to download the data from
+#' @details `pa_download_dataspace()` uses the object from
+#'   `pa_browse_dataspace()` to download the data from
 #'   Copernicus Data Space. The aoi argument is optional but
 #'   was designed to save storage space.
-#' @return pa_download_dataspace returns a list of objects
+#' @return a list of objects
 #'   that could not be downloaded
 #' @author Caio dos Santos and Fernando Miguez
 #' @export

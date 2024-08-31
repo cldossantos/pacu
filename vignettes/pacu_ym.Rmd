@@ -354,8 +354,7 @@ ymp6 <- pa_yield(input = raw.yield,
                  data.units = c(flow = 'lb/s', moisture = '%', interval = 's', width = 'in', distance = 'in'),
                  unit.system = 'metric',
                  algorithm = 'ritas',
-                 verbose = FALSE,
-                 cores = 5) 
+                 verbose = FALSE) 
 
 ```
 
@@ -377,7 +376,6 @@ ymp7 <- pa_yield(input = raw.yield,
                  algorithm = 'ritas',
                  smooth.method = 'krige',
                  unit.system = 'metric',
-                 cores = 8,
                  lbs.per.bushel = 56,
                  verbose = FALSE,
                  maxdist = 50)

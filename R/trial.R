@@ -42,18 +42,18 @@
 #'   deviation.
 #' @param clean.sd standard deviation above which the
 #'   cleaning step will remove data. Defaults to 3.
-#' @param clean.edge.distance distance (m) from the field
-#'   edge above which the cleaning step will remove data.
-#'   Defaults to 0.
+#' @param clean.edge.distance distance, in meters, from the
+#'   field edge above which the cleaning step will remove
+#'   data. Defaults to 0.
 #' @param lbs.per.bushel a numeric value representing the
-#'   number of pounds in a bushel (e.g., 60 for soybean and
-#'   56 for corn). This argument can be ommitted when the
-#'   input and output units are in the metric system. It is
-#'   necessary otherwise.
+#'   number of pounds in a bushel. For example, 60 for
+#'   soybean and 56 for corn. This argument can be ommitted
+#'   when the input and output units are in the metric
+#'   system. It is necessary otherwise.
 #' @param moisture.adj an optional numeric value to set the
 #'   moisture value to which the yield map predictions
-#'   should be adjusted (e.g., 15.5 for corn, and 13.0 for
-#'   soybean). If NULL, the function will adjust the
+#'   should be adjusted. For example,  15.5 for corn, and
+#'   13.0 for soybean. If NULL, the function will adjust the
 #'   moisture to the average moisture of the field.
 #' @param unit.system a string representing the unit system
 #'   to be used in the function output. If

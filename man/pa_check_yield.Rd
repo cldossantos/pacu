@@ -23,7 +23,7 @@ This function will check for red flags so
 \details{
 This function will check the input yield data
   for any potential problems before the user runs the
-  pa_yield function. Ideally, this function warn the user
+  `pa_yield()` function. Ideally, this function warn the user
   of potential problems.
 }
 \examples{

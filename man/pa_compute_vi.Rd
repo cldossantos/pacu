@@ -2,7 +2,8 @@
 % Please edit documentation in R/vegetation_indices.R
 \name{pa_compute_vi}
 \alias{pa_compute_vi}
-\title{Compute vegetation indices from a zipped Sentinel 2 file}
+\title{Compute vegetation indices from a zipped Sentinel
+  2 file}
 \usage{
 pa_compute_vi(
   satellite.images,
@@ -15,38 +16,50 @@ pa_compute_vi(
 )
 }
 \arguments{
-\item{satellite.images}{list of file paths to the Sentinel 2 zip files}
+\item{satellite.images}{list of file paths to the
+Sentinel 2 zip files}
 
 \item{vi}{the vegetation index to be computed}
 
-\item{aoi}{NULL or an sf object used to crop the vegetation index raster to an area of interest}
+\item{aoi}{NULL or an sf object used to crop the
+vegetation index raster to an area of interest}
 
-\item{check.clouds}{whether to check for clouds over the area of interest. If clouds are found, the function will skip cloudy images.}
+\item{check.clouds}{whether to check for clouds over the
+area of interest. If clouds are found, the function
+will skip cloudy images.}
 
-\item{buffer.clouds}{distance in meters around the area of interest within a cloud would be considered to interfere with the index calculation. This is useful to eliminate the effect of cloud shading from the analysis.}
+\item{buffer.clouds}{distance in meters around the area
+of interest within a cloud would be considered to
+interfere with the index calculation. This is useful to
+eliminate the effect of cloud shading from the
+analysis.}
 
-\item{pixel.res}{pixel resolution used to compute the vegetation index (10m, 20m, 30m)}
+\item{pixel.res}{pixel resolution used to compute the
+vegetation index. Can be one of 10m, 20m, 30m}
 
-\item{img.formats}{image formats to search for in the zipped file}
+\item{img.formats}{image formats to search for in the
+zipped file}
 }
 \value{
 an object of class veg.index and stars
 }
 \description{
-Compute vegetation indices from a zipped Sentinel 2 file.
+Compute vegetation indices from a zipped
+  Sentinel 2 file.
 }
 \details{
-This is script that unzips the Sentinel 2 zipped file into a temporary folder, searches for the index-relevant bands, and then computes the index.
-If no \sQuote{aoi} is provided, the script will compute the vegetation index for the area covered by the image.
-The vegetation indices are computed as follows:
-\tabular{c}{
-\deqn{BSI = \frac{(SWIR + RED) - (NIR + BLUE)}{(SWIR + RED) + (NIR + BLUE)}} \cr
-\deqn{EVI = \frac{2.5 \times (NIR - RED)}{(NIR + (6 \times RED) - (7.5 \times BLUE) - 1) }} \cr
-\deqn{GCVI = \frac{(NIR)}{(GREEN)} - 1}\cr
-\deqn{NDRE = \frac{(NIR - RED edge)}{(NIR + RED edge)}} \cr
-\deqn{NDVI = \frac{(NIR - RED)}{(NIR + RED)}} \cr
-\deqn{RECI = \frac{(NIR)}{(RED edge)} - 1}
-}
+This is script that unzips the Sentinel 2 zipped
+  file into a temporary folder, searches for the
+  index-relevant bands, and then computes the index. If
+  no \sQuote{aoi} is provided, the script will compute
+  the vegetation index for the area covered by the image.
+  The vegetation indices are computed as follows:
+  \deqn{BSI = \frac{(SWIR + RED) - (NIR + BLUE)}{(SWIR + RED) + (NIR + BLUE)}}
+  \deqn{EVI = \frac{2.5 \times (NIR - RED)}{(NIR + (6 \times RED) - (7.5 \times BLUE) - 1) }}
+  \deqn{GCVI = \frac{(NIR)}{(GREEN)} - 1}
+  \deqn{NDRE = \frac{(NIR - RED edge)}{(NIR + RED edge)}} 
+  \deqn{NDVI = \frac{(NIR - RED)}{(NIR + RED)}} 
+  \deqn{RECI = \frac{(NIR)}{(RED edge)} - 1}
 }
 \examples{
 \dontrun{

@@ -19,7 +19,7 @@ Register the Data Space credentials to the R
   environment
 }
 \details{
-pa_initialize_dataspace registers the username
+`pa_initialize_dataspace()` registers the username
   and password to the machine's R environment. All the
   other functions that rely on authentication will search
   for the username and password in the R environment. Do

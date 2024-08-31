@@ -86,7 +86,7 @@ pa_get_weather_sf <- function(aoi,
 #' @param first.year beginning of time window to filter the satellite images
 #' @param last.year end of time window to filter the satellite images
 #' @details
-#' The pa_get_gee_indices function is a script that runs a python script to interact with
+#' The `pa_get_gee_indices()` function is a script that runs a python script to interact with
 #' Google Earth Engine. This script will filter satellite images matching the
 #' shapefile provided to the function and, also, the year range.
 #' @noRd
@@ -127,7 +127,7 @@ pa_get_gee_indices <- function(shapefile.path, out.path, project.name, first.yea
 #' @param tgt.year which year to focus and compare to the historical mean. Defaults to the last year in the data set.
 #' @param date.format a strong representing date formatting, in case the \sQuote{dates} argument needs to be converted
 #' @details
-#' The pa_plot_vi_curve function will summarize the vi data, calculate
+#' The `pa_plot_vi_curve()` function will summarize the vi data, calculate
 #' the area under the curve and rank the target year among the other years. This
 #' can be used to contextualize a given crop year.
 #' @noRd

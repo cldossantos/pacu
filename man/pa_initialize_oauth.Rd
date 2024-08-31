@@ -18,8 +18,8 @@ Register the Oauth2.0 credentials to the R environment
 initialize_oauth registers the client id and secret to the machine's R environment
 All the other functions that rely on authentication will search for the clients id ans secret in
 the R environment. Do not share your R environment with others, as they will be able to read your client id and secret.
-You can register at https://dataspace.copernicus.eu/news. Please see this section for how to create your Oauth2.0 client:
-https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Overview/Authentication.html
+You can register at \url{https://dataspace.copernicus.eu/news}. Please see this section for how to create your Oauth2.0 client:
+\url{https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Overview/Authentication.html}.
 }
 \examples{
 \dontrun{

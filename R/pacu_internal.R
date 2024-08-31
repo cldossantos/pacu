@@ -82,9 +82,10 @@
 #' @noRd
 
 .pa_get_dataspace_token <- function(username, password,
-                                    oauth = FALSE,
-                                    url = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token") {
+                                    oauth = FALSE
+                                    ) {
 
+  url  <-  "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
   token_data <- list( client_id = "cdse-public", username = username,
                       password = password, grant_type = "password")
 
@@ -584,7 +585,7 @@
 #' This function makes individual vehicular polygons based on location, swath, distance, and trajectory angle
 #' @param point a point geometry
 #' @param swath a swath value in meters
-#' @param distance distance (m) between the previous point and the current
+#' @param distance distance, in meters, between the previous point and the current
 #' @param angle an angle in degrees
 #' @noRd
 
@@ -862,7 +863,7 @@
 #' @name .pa_time2interval
 #' @param x a vector with the time data
 #' @param fmts.to.try a vector containing strings of formats to try.
-#' @details This function will enforce the units necessary for the ritas steps (e.g, meters, g/m2)
+#' @details This function will convert datetime to interval
 #' @return a vector
 #' @noRd
 .pa_time2interval <- function(x,
@@ -924,7 +925,7 @@
 #' @name .pa_enforce_units
 #' @param vec a vector of class "units"
 #' @param var a string indicating which variable the vector represents
-#' @details This function will enforce the units necessary for the ritas steps (e.g, meters, g/m2)
+#' @details This function will enforce the units necessary for the ritas steps, for example meters and g m-2
 #' @return a vector
 #' @noRd
 
@@ -1288,7 +1289,7 @@
 #' @description Adjust for the time lag between the crop being cut by the combine and the sensor recording a data point
 #' @name .pa_adjust_lag
 #' @param input an sf object containing the input data from a yield monitor
-#' @param time.adj time (s) to used to adjust the observations
+#' @param time.adj time, in seconds, to used to adjust the observations
 #' @param time.col time columns in the input
 #' @details This function will adjust for the time lag between the crop being cut by the combine and the sensor recording
 #' a data point.
@@ -1324,7 +1325,7 @@
 #' @param interval a vector the interval between measurements in seconds
 #' @param moisture vector of the recorded grain moisture in \%
 #' @details This function will convert crop flow in lb/s to dry mass in g
-#' @return returns a vector containing mass (g)
+#' @return returns a vector containing mass, in grams
 #' @author Caio dos Santos and Fernando Miguez
 #' @noRd
 #'

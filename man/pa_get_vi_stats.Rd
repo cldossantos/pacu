@@ -12,18 +12,17 @@ pa_get_vi_stats(
   collection = c("sentinel-2-l2a"),
   vegetation.index = c("bsi", "evi", "gcvi", "ndre", "ndvi", "reci"),
   agg.time = c("P1D", "P5D", "P10D"),
-  by.feature = FALSE,
-  url = "https://sh.dataspace.copernicus.eu/api/v1/statistics"
+  by.feature = FALSE
 )
 }
 \arguments{
 \item{aoi}{sf object used to filter satellite products}
 
 \item{start.date}{beginning of the time window to filter
-satellite products. Date format should be \%Y-\%m-\%d.}
+satellite products. Date format should be `\%Y-\%m-\%d`.}
 
 \item{end.date}{end of the time window to filter
-satellite products. Date format should be \%Y-\%m-\%d.}
+satellite products. Date format should be `\%Y-\%m-\%d`.}
 
 \item{collection}{for now, it only supports 'sentinel2'.}
 
@@ -36,9 +35,6 @@ products}
 \item{by.feature}{logical, indicating whether the
 statistics should be retrieved by each polygon when
 multiple polygons are supplied in \sQuote{aoi}}
-
-\item{url}{Copernicus Statistics API url. Do not change
-this unless Copernicus issues a new API}
 }
 \value{
 returns an object of class veg.index and stars
@@ -48,7 +44,7 @@ Request  vegetation index statistics from
   the Data Space Statistics API
 }
 \details{
-pa_get_vi_sentinel2 will use HTTP requests to
+`pa_get_vi_sentinel2()` will use HTTP requests to
   communicate with the Data Space Statistics API and
   request areal statistics for the specified vegetation
   index

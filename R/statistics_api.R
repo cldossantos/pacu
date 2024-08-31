@@ -7,9 +7,9 @@
 #' @rdname pa_get_vi_stats
 #' @param aoi sf object used to filter satellite products
 #' @param start.date beginning of the time window to filter
-#'   satellite products. Date format should be \%Y-\%m-\%d.
+#'   satellite products. Date format should be `\%Y-\%m-\%d`.
 #' @param end.date end of the time window to filter
-#'   satellite products. Date format should be \%Y-\%m-\%d.
+#'   satellite products. Date format should be `\%Y-\%m-\%d`.
 #' @param collection for now, it only supports 'sentinel2'.
 #' @param vegetation.index vegetation index to be requested
 #'   from the Data Space
@@ -18,9 +18,7 @@
 #' @param by.feature logical, indicating whether the
 #'   statistics should be retrieved by each polygon when
 #'   multiple polygons are supplied in \sQuote{aoi}
-#' @param url Copernicus Statistics API url. Do not change
-#'   this unless Copernicus issues a new API
-#' @details pa_get_vi_sentinel2 will use HTTP requests to
+#' @details `pa_get_vi_sentinel2()` will use HTTP requests to
 #'   communicate with the Data Space Statistics API and
 #'   request areal statistics for the specified vegetation
 #'   index
@@ -44,9 +42,9 @@ pa_get_vi_stats<- function(aoi,
                             collection = c('sentinel-2-l2a'),
                             vegetation.index = c('bsi', 'evi', 'gcvi', 'ndre', 'ndvi', 'reci'),
                             agg.time = c('P1D', 'P5D', 'P10D'),
-                            by.feature = FALSE,
-                            url = "https://sh.dataspace.copernicus.eu/api/v1/statistics"){
+                            by.feature = FALSE){
 
+  url <-  "https://sh.dataspace.copernicus.eu/api/v1/statistics"
 
   agg.time <- match.arg(agg.time)
   vegetation.index = match.arg(vegetation.index)
@@ -166,8 +164,8 @@ pa_get_vi_stats<- function(aoi,
 #' @details initialize_oauth registers the client id and secret to the machine's R environment
 #' All the other functions that rely on authentication will search for the clients id ans secret in
 #' the R environment. Do not share your R environment with others, as they will be able to read your client id and secret.
-#' You can register at https://dataspace.copernicus.eu/news. Please see this section for how to create your Oauth2.0 client:
-#' https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Overview/Authentication.html
+#' You can register at \url{https://dataspace.copernicus.eu/news}. Please see this section for how to create your Oauth2.0 client:
+#' \url{https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Overview/Authentication.html}.
 #' @return NULL
 #' @author Caio dos Santos and Fernando Miguez
 #' @export
