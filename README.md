@@ -19,3 +19,7 @@ The vignettes are not automatically built when the package is installed from git
 Imported packages: stars, XML, gstat, units, sf, apsimx, tmap, httr, jsonlite
 
 Suggested packages: spData, knitr, mgcv, concaveman, rmarkdown, ggplot2, patchwork, nasapower, testthat
+
+## Manuscript preprint
+
+You can find a preprint of the manuscript describing *pacu* [here](http://ssrn.com/abstract=4946676)
