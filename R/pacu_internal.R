@@ -1016,7 +1016,7 @@
   }
 
   if (var == 'distance') {
-    if (vs[3] > 1 && vs[3] < 5) mu <- 'm'
+    if (vs[3] < 5) mu <- 'm'
     if (vs[3] >= 5 && vs[3] <= 50) mu <- 'ft'
     if(vs[3] > 50) mu <- 'in'
   }
