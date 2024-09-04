@@ -14,7 +14,7 @@ The vignettes are not automatically built when the package is installed from git
 > devtools::install_github("cldossantos/pacu", build_vignettes = TRUE)\
 > browseVignettes(package = 'pacu')
 
-## Pakcage requirements:
+## Package requirements
 
 Imported packages: stars, XML, gstat, units, sf, apsimx, tmap, httr, jsonlite
 
