@@ -812,24 +812,40 @@
   if (!is.na(inf.unit)) {
     units(tgt) <- units::as_units(inf.unit)
   }else {
-    comparison.vector <- NULL
-    
-    if (var == 'distance') {
-      ## setting this comparison vector to 10% of the 
-      ## length of the data. We can possibly set this
-      ## to a global variable
-      sample.size <- nrow(df) %/% 10
-      comp.df <- sf::st_geometry(df)
-      comp.df <- utils::head(comp.df, sample.size)
-      comparison.vector <- sf::st_distance(comp.df[1:(sample.size-1), ],
-                                           comp.df[2:sample.size, ],
-                                           by_element = TRUE)
-    }
-    
+    comparison.vector <- .pa_get_comparison_vector(df, var)
     tgt <- .pa_guess_units(tgt, var, comparison.vector,verbose)
   }
   tgt <- .pa_enforce_units(tgt, var)
   tgt
+}
+
+#'
+#' @title retrieve a vector with known units from the georeferenced information in the 
+#' data to help with unit guessing
+#' @description retrieve a vector with known units from the georeferenced information in the 
+#' data to help with unit guessing
+#' @name .pa_get_comparison_vector
+#' @param df an sf object containing the columns which to search for a variable
+#' @param var a string indicating which variable to search for
+#' @return a vector
+#' @noRd
+.pa_get_comparison_vector <- function(df, var){
+  comparison.vector <- NULL
+  
+  if (var == 'distance') {
+    ## setting this comparison vector to 10% of the 
+    ## length of the data. We can possibly set this
+    ## to a global variable
+    sample.size <- nrow(df) %/% 10
+    comp.df <- sf::st_geometry(df)
+    comp.df <- utils::head(comp.df, sample.size)
+    comparison.vector <- sf::st_distance(comp.df[1:(sample.size-1), ],
+                                         comp.df[2:sample.size, ],
+                                         by_element = TRUE)
+  }  
+  
+  return(comparison.vector)
+  
 }
 
 #'

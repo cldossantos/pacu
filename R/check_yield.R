@@ -220,7 +220,8 @@ pa_check_yield <- function(input,
       }else{
         variable.column <- tgt.col
         variable.data <- input[[variable.column]]
-        variable.units <-  suppressMessages(.pa_guess_units(variable.data, var, verbose = FALSE))
+        comparison.vector <- .pa_get_comparison_vector(input, var)
+        variable.units <-  suppressMessages(.pa_guess_units(variable.data, var, comparison.vector, verbose = FALSE))
         ul <- units(variable.units)
         ul <- paste(ul$numerator, ul$denominator,
                     sep = ifelse(length(ul$denominator) > 0, '/', ''))
