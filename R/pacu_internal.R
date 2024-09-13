@@ -812,7 +812,21 @@
   if (!is.na(inf.unit)) {
     units(tgt) <- units::as_units(inf.unit)
   }else {
-    tgt <- .pa_guess_units(tgt, var, verbose)
+    comparison.vector <- NULL
+    
+    if (var == 'distance') {
+      ## setting this comparison vector to 10% of the 
+      ## length of the data. We can possibly set this
+      ## to a global variable
+      sample.size <- nrow(df) %/% 10
+      comp.df <- sf::st_geometry(df)
+      comp.df <- utils::head(comp.df, sample.size)
+      comparison.vector <- sf::st_distance(comp.df[1:(sample.size-1), ],
+                                           comp.df[2:sample.size, ],
+                                           by_element = TRUE)
+    }
+    
+    tgt <- .pa_guess_units(tgt, var, comparison.vector,verbose)
   }
   tgt <- .pa_enforce_units(tgt, var)
   tgt
@@ -975,13 +989,15 @@
 #' @name .pa_guess_units
 #' @param vec a vector of class \sQuote{units}
 #' @param var a string indicating which variable the vector represents
+#' @param comparison.vector a vector of values in metric units that can be extracted from the 
+#' data to help guess the units of the dataset
 #' @param verbose whether to print information on this functions steps
 #' @details This function will attempt to guess the units of a variable based on normal ranges.
 #' I intend to improve this function in the future.
 #' @return a \sQuote{units} vector
 #' @noRd
 
-.pa_guess_units <- function(vec, var, verbose = FALSE) {
+.pa_guess_units <- function(vec, var, comparison.vector = NULL, verbose = FALSE) {
 
   vs <- summary(vec)
   mu <- 'unknown'
@@ -1016,11 +1032,26 @@
   }
 
   if (var == 'distance') {
-    if (vs[3] < 5) mu <- 'm'
-    if (vs[3] >= 5 && vs[3] <= 50) mu <- 'ft'
-    if(vs[3] > 50) mu <- 'in'
+    
+    if (is.null(comparison.vector)){
+      if (vs[3] < 5) mu <- 'm'
+      if (vs[3] >= 5 && vs[3] <= 50) mu <- 'ft'
+      if(vs[3] > 50) mu <- 'in'
+    }else{
+      comparison.vector <- as.numeric(comparison.vector)
+      possible.units <- c('m', 'in', 'cm', 'ft')
+      different.units <- sapply(possible.units, function(unt) {
+        gu <- as.numeric(vs[3])
+        units(gu) <- units::as_units(unt)
+        units(gu) <- units::as_units('m')
+        gu
+      })
+      unit.ratios <- abs((stats::median(comparison.vector)/ different.units) - 1) 
+      guessed.unit <- which.min(unit.ratios)
+      mu <- names(guessed.unit)
+    }
   }
-
+  
   if(var == 'yield') {
     if (vs[3] < 500 && vs[3] > 20) mu <- 'bushel/acre'
     if (vs[3] <= 20) mu <- 't/ha'

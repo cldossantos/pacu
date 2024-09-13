@@ -1,4 +1,13 @@
 
+## 2024-09-13
+
+- Version 0.1.35:
+ 
+- Caio made improvements to the function that guesses units. Now, the function uses the georeferenced information contained in the sf object to guess the units of distance between points. I believe this will fix the problem with guessing units when the interval between measurements is very smalle (e.g, 0.2s).
+
+- I plan on make improvements to the guessing of other variables as well.
+
+
 ## 2024-08-31
 
 - We have finally cleared out all the latex errors from the documentation. Most of them were due to the vegetation index formulas in the `pa_compute_vi()` function documentation. 
