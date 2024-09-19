@@ -267,7 +267,8 @@ pa_browse_dataspace<- function(aoi,
 
 pa_download_dataspace <- function(x,
                                   dir.path = NULL,
-                                  aoi = NULL) {
+                                  aoi = NULL,
+                                  verbose = TRUE) {
 
   ## Checking for the right format in the x object
   if(!inherits(x, 'dslist'))
@@ -286,6 +287,13 @@ pa_download_dataspace <- function(x,
     }
   }
 
+  if(verbose == 1){
+    progress.bar <- utils::txtProgressBar(min = 0, 
+                                          max = nrow(x),
+                                          style = 3,
+                                          initial = 0)
+    on.exit(close(progress.bar))
+  }
 
   if(is.null(dir.path))
     dir.path <- '.'
@@ -323,7 +331,9 @@ pa_download_dataspace <- function(x,
     url <- sprintf("https://catalogue.dataspace.copernicus.eu/odata/v1/Products(%1$s)/$value",
                    x$Id[i])
 
+    if (verbose > 1){
     cat('Downloading ', x$Name[i], '\n')
+    }
 
     resp <- httr::GET(url,
                       httr::add_headers(Authorization = paste("Bearer", token$access_token, sep = " ")),
@@ -348,6 +358,9 @@ pa_download_dataspace <- function(x,
         .pa_crop_s2_to_aoi(outpath, aoi)
     }
 
+    if( verbose == 1){
+      utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1) 
+    }
     sccs <- c(sccs, outpath)
   }
   return(sccs)

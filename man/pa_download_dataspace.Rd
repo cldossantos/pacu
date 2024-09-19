@@ -5,7 +5,7 @@
 \title{Download satellite products from the Copernicus
   Data Space Ecosystem}
 \usage{
-pa_download_dataspace(x, dir.path = NULL, aoi = NULL)
+pa_download_dataspace(x, dir.path = NULL, aoi = NULL, verbose = TRUE)
 }
 \arguments{
 \item{x}{object of class \sQuote{dslist}}

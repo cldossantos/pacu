@@ -162,7 +162,8 @@
     unlink(sat_img[[1]])
     utils::zip(sat_img[[1]],
                files = file.path('./reduced',
-                                 files_to_zip))
+                                 files_to_zip),
+               flags = '-q') ## might need to adjust this to different OS
     ## Deleting temporary folders
     folders_to_delete <- dir(temporary_dir, pattern = '[.]SAFE')
     unlink(paste0(normalizePath(temporary_dir), "/", folders_to_delete),

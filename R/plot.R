@@ -174,47 +174,38 @@ pa_plot.rgb <- function(x,
                         saturation = 1,
                         alpha = 1,
                         interpolate = FALSE){
-
+  
   if(interactive){suppressMessages(tmap::tmap_mode("view"))} else {suppressMessages(tmap::tmap_mode('plot'))}
-
+  
   sx <- structure(x)
   sm <- sapply(sx, max, na.rm = TRUE)
-
+  
   time.points <- stars::st_get_dimension_values(x, 'time')
-
-  if (length(time.points) == 1){
-
-    p <-  tmap::tm_shape(x)  +
+  
+  
+  p <- list()
+  for (t in 1:length(time.points)) {
+    one.img <- x[, , , t]
+    one.img <-  stars::st_redimension(one.img,
+                                      new_dims = dim(one.img)[1:2])
+    
+    sx <- structure(one.img)
+    sm <- sapply(sx, max, na.rm = TRUE)
+    g <- tmap::tm_shape(one.img)+
       tmap::tm_rgb(max.value = max(sm),
                    saturation = saturation,
                    alpha = alpha,
-                   interpolate = interpolate)
-
-  }else{
-
-    p <- list()
-    for (t in 1:length(time.points)) {
-      one.img <- x[, , , t]
-      one.img <-  stars::st_redimension(one.img,
-                                         new_dims = dim(one.img)[1:2])
-
-      sx <- structure(one.img)
-      sm <- sapply(sx, max, na.rm = TRUE)
-      g <- tmap::tm_shape(one.img)+
-        tmap::tm_rgb(max.value = max(sm),
-               saturation = saturation,
-               alpha = alpha,
-               interpolate = interpolate)+
-        tmap::tm_layout(main.title = as.character(time.points[t]))
-      p[[length(p) + 1]] <-  g
-
-    }
+                   interpolate = interpolate)+
+      tmap::tm_layout(main.title = as.character(time.points[t]))
+    p[[length(p) + 1]] <-  g
+    
+    
     p <- tmap::tmap_arrange(p)
-
-
+    
+    
   }
-
-
+  
+  
   print(p)
 }
 

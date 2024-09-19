@@ -2,6 +2,10 @@
 
 - Version 0.1.36:
 
+- Suppressed messages from "zip" when crop s2 images to the aoi
+
+- added progress bars to pa_get_rgb(), pa_compute_vi(), and pa_download_dataspace()
+
 - the pa_get_rgb() function had a problem in which it would always return the first image of a list of satellite images. That is fixed now.
 
 - the pa_compute_vi() function failed to warn users that when check.clouds is true, the function requires an aoi to be able to check for clouds. That is fixed now.
