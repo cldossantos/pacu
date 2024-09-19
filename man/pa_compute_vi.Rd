@@ -12,7 +12,8 @@ pa_compute_vi(
   check.clouds = FALSE,
   buffer.clouds = 100,
   pixel.res = c("default", "10m", "20m", "60m"),
-  img.formats = c("jp2", "tif")
+  img.formats = c("jp2", "tif"),
+  verbose = TRUE
 )
 }
 \arguments{
@@ -39,6 +40,9 @@ vegetation index. Can be one of 10m, 20m, 30m}
 
 \item{img.formats}{image formats to search for in the
 zipped file}
+
+\item{verbose}{whether to display information on the
+progress of operations}
 }
 \value{
 an object of class veg.index and stars

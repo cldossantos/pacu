@@ -9,7 +9,8 @@ pa_get_rgb(
   aoi = NULL,
   pixel.res = "10m",
   img.formats = c("jp2", "tif"),
-  rgb.bands = c("B04", "B02", "B03")
+  rgb.bands = c("B04", "B02", "B03"),
+  verbose = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,9 @@ pa_get_rgb(
 \item{img.formats}{image formats to search for in the zipped file}
 
 \item{rgb.bands}{a vector containing the order of the RGB bands}
+
+\item{verbose}{whether to display information on the
+progress of operations}
 }
 \value{
 an object of class rgb and stars
