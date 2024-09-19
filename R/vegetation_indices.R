@@ -22,6 +22,8 @@
 #'   vegetation index. Can be one of 10m, 20m, 30m
 #' @param img.formats image formats to search for in the
 #'   zipped file
+#' @param verbose whether to display information on the
+#'   progress of operations
 #' @details This is script that unzips the Sentinel 2 zipped
 #'   file into a temporary folder, searches for the
 #'   index-relevant bands, and then computes the index. If
@@ -63,7 +65,8 @@ pa_compute_vi <- function(satellite.images,
                           check.clouds = FALSE,
                           buffer.clouds = 100,
                           pixel.res = c('default', '10m', '20m', '60m'),
-                          img.formats = c('jp2', 'tif')){
+                          img.formats = c('jp2', 'tif'),
+                          verbose = TRUE){
 
   pixel.res <- match.arg(pixel.res)
   vi <- match.arg(vi)
@@ -97,9 +100,20 @@ pa_compute_vi <- function(satellite.images,
 
 
   res <- list()
+  
+  if(verbose == 1){
+    progress.bar <- utils::txtProgressBar(min = 0, 
+                                          max = length(satellite.images),
+                                          style = 3,
+                                          initial = 0)
+    on.exit(close(progress.bar))
+  }
 
   for (sat.img in satellite.images) {
-
+    if (verbose > 1) {
+      cat('processing ', sat.img, '\n')
+    }
+    
     if(!is.null(aoi) && check.clouds == TRUE) {
       clouds <- .pa_get_cloud_polygon(sat.img)
 
@@ -158,6 +172,11 @@ pa_compute_vi <- function(satellite.images,
     img <- stars::st_set_dimensions(img, 3, timestamp)
     names(img) <- vi
     res[[length(res) + 1]] <- img
+    
+    if( verbose == 1){
+      utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1) 
+    }
+     
   }
 
 

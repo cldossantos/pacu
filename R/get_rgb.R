@@ -7,6 +7,8 @@
 #' @param pixel.res pixel resolution used to retrieve the RGB image. Can be one of 10m, 20m, 30m.
 #' @param img.formats image formats to search for in the zipped file
 #' @param rgb.bands a vector containing the order of the RGB bands
+#' @param verbose whether to display information on the
+#'   progress of operations
 #' @details This is script that unzips the Sentinel 2 zipped file into a temporary folder, searches for the RGB,
 #' and constructs a multi-band raster containing the RGB bands.
 #' If no \sQuote{aoi} is provided, the script will construct the RGB image for the area covered by the image.
@@ -28,7 +30,8 @@ pa_get_rgb <- function(satellite.images,
                         aoi = NULL,
                         pixel.res = '10m',
                         img.formats = c('jp2', 'tif'),
-                       rgb.bands = c('B04', 'B02', 'B03')){
+                       rgb.bands = c('B04', 'B02', 'B03'),
+                       verbose = TRUE){
 
   extensions <- paste0(img.formats, collapse = '|')
   extensions <- paste0('\\.(', extensions, ')$')
@@ -42,8 +45,19 @@ pa_get_rgb <- function(satellite.images,
     }
   }
 
+  if(verbose == 1){
+    progress.bar <- utils::txtProgressBar(min = 0, 
+                                          max = length(satellite.images),
+                                          style = 3,
+                                          initial = 0)
+    on.exit(close(progress.bar))
+  }
+  
   for (sat.img in satellite.images) {
 
+    if (verbose > 1) {
+      cat('processing ', sat.img, '\n')
+    }
     ## Get list of files inside of the zip file
     bname <- basename(sat.img)
     bname <- strsplit(bname, '\\.')[[1]][1]
@@ -80,6 +94,9 @@ pa_get_rgb <- function(satellite.images,
     res[[length(res) + 1]] <- img
     class(img) <- c('rgb', class(img))
 
+    if( verbose == 1){
+      utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1) 
+    }
   }
   sorted <- sapply(res, function(x) stars::st_get_dimension_values(x, 'time'))
   sorted <- order(sorted)
