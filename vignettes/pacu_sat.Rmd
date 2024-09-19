@@ -102,7 +102,8 @@ out.dir <- tempdir()
 available.images <- available.images[32:33, ]
 pa_download_dataspace(x = available.images,
                       dir.path = out.dir,
-                      aoi = area.of.interest)
+                      aoi = area.of.interest,
+                      verbose = FALSE)
 ```
 
 ```{r out-equal-ext, include=FALSE}
@@ -116,7 +117,9 @@ in looking at RGB images.
 
 ```{r rgb-img, fig.width=7, fig.height=5}
 s2.files <- list.files(out.dir, '\\.zip', full.names = TRUE)
-rgb.img <- pacu::pa_get_rgb(s2.files, aoi = area.of.interest)
+rgb.img <- pa_get_rgb(s2.files,
+                      aoi = area.of.interest,
+                      verbose = FALSE)
 pa_plot(rgb.img)
 ```
 
@@ -124,11 +127,13 @@ Similarly, we might be interested in NDVI or NDRE...
 ```{r, ndvi-img,  fig.width=7, fig.height=5}
 ndvi.img <- pa_compute_vi(s2.files,
                           vi = 'ndvi', 
-                          aoi = area.of.interest)
+                          aoi = area.of.interest,
+                          verbose = FALSE)
 
 ndre.img <- pa_compute_vi(s2.files, 
                           vi = 'ndre',
-                          aoi = area.of.interest)
+                          aoi = area.of.interest,
+                          verbose = FALSE)
 
 pa_plot(ndvi.img, main = 'NDVI')
 pa_plot(ndre.img, main = 'NDRE')
