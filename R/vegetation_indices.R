@@ -75,6 +75,11 @@ pa_compute_vi <- function(satellite.images,
       return(NULL)
     }
   }
+  
+  if(is.null(aoi) && check.clouds == TRUE) 
+    stop('When check.clouds is TRUE, aoi must be supplied')
+  
+  
 
   ibands <- list(ndvi = c('B08', 'B04'),
                  ndre = c('B08', 'B05'),

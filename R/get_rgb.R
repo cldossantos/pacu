@@ -45,11 +45,12 @@ pa_get_rgb <- function(satellite.images,
   for (sat.img in satellite.images) {
 
     ## Get list of files inside of the zip file
-    imgList <- utils::unzip(sat.img[[1]], list = TRUE)
-
-    ## Match the image names
-    image.indices <- grep(paste0('IMG_DATA/.{1,}B[0-9]{2,2}.{1,}', extensions), imgList[[1]], value = TRUE)
+    bname <- basename(sat.img)
+    bname <- strsplit(bname, '\\.')[[1]][1]
     temporary.dir <- tempdir(check = TRUE)
+    temporary.dir <- file.path(temporary.dir, bname)
+    dir.create(temporary.dir, showWarnings = FALSE, recursive = TRUE)
+    
     utils::unzip(sat.img[[1]], overwrite = TRUE, exdir = temporary.dir, junkpaths = TRUE)
     rs <- list()
     for  (b in rgb.bands){
