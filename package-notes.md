@@ -1,3 +1,10 @@
+## 2024-09-14
+
+- Version 0.1.36:
+
+- the pa_get_rgb() function had a problem in which it would always return the first image of a list of satellite images. That is fixed now.
+
+- the pa_compute_vi() function failed to warn users that when check.clouds is true, the function requires an aoi to be able to check for clouds. That is fixed now.
 
 ## 2024-09-13
 
