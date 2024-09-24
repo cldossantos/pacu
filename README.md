@@ -1,8 +1,7 @@
-# pacu: Precision Agriculture Computational Utilities
+# pacu: Precision Agriculture Computational Utilities <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
 The *pacu* package allows for processing, visualization, and analysis of yield monitor data. Additionally, this package also allows for retrieval, processing, and visualization of weather and satellite data.
 
-# pacu <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
 ## Installation
 
