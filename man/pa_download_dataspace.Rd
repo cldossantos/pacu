@@ -16,7 +16,10 @@ saved}
 \item{aoi}{NULL or an sf object. If an area of interest
 (aoi) is provided, the downloaded zip files will be
 cropped to the aoi. This was designed to save storage
-space.}
+space}
+
+\item{verbose}{whether to display information on the
+progress of operations}
 }
 \value{
 a list of objects

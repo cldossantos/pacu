@@ -243,7 +243,9 @@ pa_browse_dataspace<- function(aoi,
 #' @param aoi NULL or an sf object. If an area of interest
 #'   (aoi) is provided, the downloaded zip files will be
 #'   cropped to the aoi. This was designed to save storage
-#'   space.
+#'   space
+#' @param verbose whether to display information on the
+#'   progress of operations
 #' @details `pa_download_dataspace()` uses the object from
 #'   `pa_browse_dataspace()` to download the data from
 #'   Copernicus Data Space. The aoi argument is optional but

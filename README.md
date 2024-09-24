@@ -23,4 +23,4 @@ Suggested packages: spData, knitr, mgcv, concaveman, rmarkdown, ggplot2, patchwo
 
 ## Manuscript preprint
 
-You can find a preprint of the manuscript describing *pacu* [here](https://ssrn.com/abstract=4946676)
+You can find a preprint of the manuscript describing *pacu* [here](https://www.ssrn.com/abstract=4946676)
