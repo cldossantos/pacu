@@ -10,10 +10,21 @@ pacu is not yet available on CRAN. To install pacu from github you can try:
 > devtools::install_github("cldossantos/pacu")\
 > library(pacu)
 
+or you can also try the lightweight 'remotes' package:
+
+> remotes::install_github("cldossantos/pacu")\
+> library(pacu)
+
 The vignettes are not automatically built when the package is installed from github. To get started with pacu, you can build the vignettes and check the examples we provide.
 
 > devtools::install_github("cldossantos/pacu", build_vignettes = TRUE)\
 > browseVignettes(package = 'pacu')
+
+or you can use the lightweight 'remotes' package:
+
+> remotes::install_github("cldossantos/pacu", build_vignettes = TRUE)\
+> browseVignettes(package = 'pacu')
+
 
 ## Package requirements
 
