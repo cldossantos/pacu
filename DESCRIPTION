@@ -1,7 +1,7 @@
 Package: pacu
 Type: Package
 Title: Precision Agriculture Computational Utilities
-Version: 0.1.36
+Version: 0.1.37
 Authors@R: c(person('dos Santos', 'Caio', email = 'clsantos@iastate.edu', role = c('aut', 'cre')),
              person('Miguez', 'Fernando', role = 'aut'))
 Description: The `pacu` package is intended to provide a variety of 

@@ -1,3 +1,9 @@
+## 2024-09-30
+
+- Version 0.1.37
+
+- added the "plot.type" argument to the pa_plot() function for objects of class "veg.index". Now, users can choose "timeseries".
+
 ## 2024-09-14
 
 - Version 0.1.36:

@@ -1598,6 +1598,89 @@
 
 ## Plotting ----
 
+.pa_plot_ts <- function(x,
+                        time = 'time',
+                        plot.var,
+                        by = 'year',
+                        xlab = 'Day of the year',
+                        ylab = '',
+                        main = '',
+                        pch = 16,
+                        legend.title = NULL,
+                        legend.outside = FALSE,
+                        palette = 'Set 2'){
+  
+  if(inherits(x, 'stars'))
+    x <- as.data.frame(x)
+  
+  ## converting dates to doy
+  dates <- x[[time]]
+  
+  if(any(is.na(as.Date(dates)))){
+    ## assume doy
+    if (any(dates < 1) || any(dates > 365))
+      stop('Time is not in a recognizable date format or day of the year')
+    doy <- dates
+    year <- 1
+  }else{
+    doy <- as.numeric(strftime(dates, '%j'))
+    year <- as.numeric(strftime(dates, '%Y'))
+  }
+  
+  x$year <-  year
+  
+  grps <- interaction(x[by])
+  ## setting up colors and groups
+  number.of.groups <- length(unique(grps))
+  col.map <- hcl.colors(number.of.groups, palette)
+  
+  
+  ## graph parms
+  xlims <- range(doy)
+  xlims <- xlims + c(-10, 10)
+  
+  ylims <- range(x[[plot.var]])
+  ylims <- ylims * c(0.9, 1.1)
+  
+  
+  
+  old.par <- graphics::par('mar', 'xpd')
+  on.exit(graphics::par(old.par))
+  
+  inset <-  c(0, 0)
+  if (legend.outside){
+    graphics::par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+    inset <- c(-0.2, 0)
+  }
+  
+  plot(x = 1,                 
+       xlab = xlab, 
+       ylab = ylab,
+       xlim = xlims, 
+       ylim = ylims,
+       main = main,
+       type = "n")
+  
+  for (i in 1:number.of.groups){
+    y <- x[, plot.var]
+    graphics::points(doy[grps == levels(grps)[i]],
+                     y[grps == levels(grps)[i]], 
+                     col = col.map[i],
+                     pch = pch)
+    
+  }
+  
+  graphics::legend("topright", 
+                   inset = inset,
+                   col = col.map,
+                   legend= levels(grps), 
+                   title = legend.title,
+                   pch= pch)
+  
+  
+}
+
+
 
 ## Output ----
 

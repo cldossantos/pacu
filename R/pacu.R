@@ -48,4 +48,5 @@ assign('.run.experimental.tests', FALSE, pacu.options)
 ## @importFrom utils read.table write.table packageVersion zip unzip
 ## @importFrom tools file_path_sans_ext file_ext
 ## @importFrom stats aggregate anova coef cor cov2cor deviance lm optim qt var sd setNames sigma integrate median na.omit weighted.mean
+## @importFrom graphics legend, par, points
 NULL

@@ -205,20 +205,13 @@ pa_plot(ndvi.statistics)
 
 
 Conversely, if we are more interested in examining the data
-in a time series format, we can visualize the data by
-plotting the minimum, maximum, and mean NDVI in our area
-of interest.
-
+in a time series format, we can specify the "plot.type".
 ```{r vis-ndvi-stats, fig.width=7, fig.height = 5}
-with(as.data.frame(ndvi.statistics), {
-  plot(time, ndvi.min, col = 'steelblue', ylim = c(0, 1), ylab = 'NDVI')
-  points(time, ndvi.max, col = 'tomato1')
-  points(time, ndvi.mean, col = 'navyblue')
-  legend('topleft', pch = 1, col = c('steelblue', 'tomato1', 'navyblue'), legend = c('min', 'max', 'mean'))
-})
-
-
+pa_plot(ndvi.statistics, 
+        plot.type = 'timeseries')
 ```
+
+
 
 We might also be interested in comparing the index value
 from different regions of the field. Let us split the
@@ -248,6 +241,15 @@ ndvi.statistics.2 <- readRDS(file.path(extd.dir, 'example-ndvi-stats-2.rds'))
 Now, we can visualize the different parts of the field in a spatial and temporal context.
 ```{r plotting-ndvi-statistics-multiple, fig.width=7, fig.height=5}
 pa_plot(ndvi.statistics.2)
+```
+
+
+Similarly to the previous example, we might be interested in examining the data in a time series format. In this case, we can specify the "by" argument and a different series will be plotted for each polygon "id". 
+```{r plotting-ndvi-statistics-multiple-timeseries, fig.width=7, fig.height=5}
+pa_plot(ndvi.statistics.2, 
+        plot.type = 'timeseries',
+        by = c('id'),
+        legend.outside = TRUE)
 ```
 
 

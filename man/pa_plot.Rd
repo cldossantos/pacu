@@ -30,13 +30,20 @@ pa_plot(x, ...)
 \method{pa_plot}{veg.index}(
   x,
   ...,
-  palette = "Temps",
+  palette = ifelse(plot.type == "timeseries", "Dark 2", "Temps"),
+  plot.type = c("spatial", "timeseries"),
   main = "",
   plot.var = NULL,
+  by = "year",
+  xlab = NULL,
+  ylab = NULL,
   style = c("quantile", "pretty", "equal"),
   nbreaks = 5,
   border.col = "black",
-  frame = TRUE
+  frame = TRUE,
+  legend.outside = FALSE,
+  legend.title = NULL,
+  pch = 16
 )
 
 \method{pa_plot}{rgb}(
@@ -97,6 +104,17 @@ will produce zoomed in plots.}
 the plotting area.}
 
 \item{legend.outside}{logical. Whether to place the legend outside of the graph.}
+
+\item{by}{a string or vector of strings used to group the data 
+when plotting. Defaults to 'year'}
+
+\item{xlab}{a string used as label for x axis}
+
+\item{ylab}{a string used as label for y axis}
+
+\item{legend.title}{a string used as title for the legend}
+
+\item{pch}{an integer indicating which shape to use for points}
 
 \item{saturation}{numeric. Controls the image saturation. 0 maps to grayscale. 1 maps to the default value.  See \link[tmap]{tm_rgb} for details.}
 

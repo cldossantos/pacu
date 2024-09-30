@@ -109,17 +109,37 @@ pa_plot.yield <- function(x,
 
 
 #' @rdname pa_plot
+#' @param by a string or vector of strings used to group the data 
+#' when plotting. Defaults to 'year' 
+#' @param xlab a string used as label for x axis
+#' @param ylab a string used as label for y axis
+#' @param legend.title a string used as title for the legend
+#' @param pch an integer indicating which shape to use for points
 #' @export
 pa_plot.veg.index <- function(x,
                               ...,
-                              palette = 'Temps',
+                              palette = ifelse(plot.type == 'timeseries', 'Dark 2','Temps'),
+                              plot.type= c('spatial', 'timeseries'),
                               main = '',
                               plot.var = NULL,
+                              by = 'year',
+                              xlab = NULL,
+                              ylab = NULL,
                               style =  c("quantile", "pretty", 'equal'),
                               nbreaks = 5,
                               border.col = 'black',
-                              frame = TRUE) {
+                              frame = TRUE,
+                              legend.outside = FALSE,
+                              legend.title = NULL,
+                              pch = 16) {
 
+  plot.type <- match.arg(plot.type)
+  
+  if (is.null(plot.var))
+    plot.var <- attr(x, 'vegetation.index')
+  
+  if (plot.type == 'spatial'){
+  
   initial.options <- tmap::tmap_options()
   tmap::tmap_options(show.warnings = FALSE)
   on.exit(suppressMessages(tmap::tmap_options(initial.options)))
@@ -127,15 +147,10 @@ pa_plot.veg.index <- function(x,
   is.raster <- inherits(try(sf::st_geometry_type(x), silent = TRUE), 'try-error')
   style <- match.arg(style)
 
-  if (is.null(plot.var))
-    plot.var <- attr(x, 'vegetation.index')
-
   ## controlling the colors
   cols <- function(n) {hcl.colors(n, palette, rev = TRUE)}
-
   ndates <- stars::st_get_dimension_values(x, 'time')
-
-
+  
   if(is.raster){
     p <- tmap::tm_shape(x)
     p <- p + tmap::tm_raster(palette = cols(nbreaks),
@@ -160,6 +175,23 @@ pa_plot.veg.index <- function(x,
     p <- p + tmap::tm_layout(legend.outside = T)
 
   print(suppressWarnings(p))
+  }
+  
+  if (plot.type == 'timeseries'){
+    .pa_plot_ts(x = x, 
+                plot.var = plot.var,
+                by = by,
+                time = 'time',
+                ylab = ifelse(is.null(ylab), plot.var, ylab),
+                xlab = ifelse(is.null(xlab), "Day of the year", xlab),
+                legend.outside = legend.outside,
+                palette = palette,
+                legend.title = legend.title,
+                main = main,
+                pch = pch)
+  }
+  
+  
 }
 
 
