@@ -1,3 +1,10 @@
+## 2024-10-24
+
+- Version 0.1.38
+
+- Updated the pa_get_vi_stats() function to return a combination of the original area of interest obeject and the returned indices by the API. This allow us to make graphs and summarize the data based on experimental units. For example, we can make a plot by nitrogen rate or hybrid.
+
+
 ## 2024-09-30
 
 - Version 0.1.37

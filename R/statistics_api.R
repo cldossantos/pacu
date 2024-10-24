@@ -50,9 +50,12 @@ pa_get_vi_stats<- function(aoi,
   vegetation.index = match.arg(vegetation.index)
   collection <- match.arg(collection)
 
+  
   if(!inherits(aoi, 'sf'))
     stop('aoi must be an sf object')
-
+  
+  initial.aoi <- aoi
+  
   if(sf::st_crs(aoi)$input != 'EPSG:4326'){
     aoi <- sf::st_transform(aoi, 4326)
   }
@@ -146,7 +149,10 @@ pa_get_vi_stats<- function(aoi,
   row.names(res) <- NULL
   geometry.col <- grep('geometry|^x$', names(res), value = TRUE)[1]
 
-  res <- stars::st_as_stars(res, dims = c(geometry.col, 'time'))
+  res <- sf::st_as_sf(res)
+  res <-  sf::st_transform(res, sf::st_crs(initial.aoi))
+  res <- sf::st_join(res, initial.aoi, join = sf::st_equals)
+  res <- stars::st_as_stars(res, dims = c(attr(res, "sf_column"), 'time'))
   attr(res, 'vegetation.index') <- paste0(vegetation.index, '.mean')
   class(res) <- c('veg.index', 'stars')
 

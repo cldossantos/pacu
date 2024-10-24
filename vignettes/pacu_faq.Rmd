@@ -1,0 +1,42 @@
+---
+title: "pacu: Precision Agriculture Computational Utilities - FAQ"
+author: "Caio dos Santos & Fernando Miguez"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{pacu: Precision Agriculture Computational Utilities - FAQ}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+# Specific vignettes
+
+1.  [Satellite data](pacu_sat.html)
+
+2.  [Weather data](pacu_weather.html)
+
+3.   [Yield monitor data](pacu_ym.html)
+
+4. [Frequently asked questions](pacu_faq.html)
+
+# FAQ
+
+1.  The *pa_yield()* function expects an *sf* object but my data is in a ".csv" format. How should I proceed?
+
+    The data in a csv format can be read into R as a data frame and, subsequently, converted into an *sf* object. See the example below.
+    ```{r, message = F}
+    x <- 40:45
+    y <- -90:-95
+    yield <- 100:105
+    dat <- data.frame(x = x, 
+                      y = y,
+                      yield = yield)
+    class(dat) ## data.frame
+    
+    dat <- sf::st_as_sf(dat,
+                 coords = c('x', 'y')) 
+    class(dat) ## sf and data.frame
+    
+    ```

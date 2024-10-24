@@ -41,6 +41,8 @@ smooth yield maps.
 
 3.   [Yield monitor data](pacu_ym.html)
 
+4. [Frequently asked questions](pacu_faq.html)
+
 # Appendix
 
 Below is a list of files, in alphabetical order, contained
