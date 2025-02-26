@@ -94,7 +94,9 @@ pa_get_rgb <- function(satellite.images,
       bimg <- stars::read_stars(bpath)
 
       if(!is.null(aoi)){
-        boundary <- sf::st_geometry(sf::st_transform(aoi, sf::st_crs(bimg)))
+        aoi <- pa_2utm(aoi)
+        boundary <- sf::st_geometry(sf::st_union(aoi))
+        bimg <- stars::st_warp(bimg, crs = sf::st_crs(boundary))
         bimg <- sf::st_crop(bimg, boundary, crop = TRUE)
       }
       rs[[length(rs) + 1]] <- bimg

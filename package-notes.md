@@ -1,5 +1,11 @@
 ## 2025-02-18
 
+- Version 0.1.49
+
+- small bug in .pa_align_bbox().
+
+## 2025-02-18
+
 - changed the color scheme of the plots that show the yield processing steps
 
 ## 2025-02-04

@@ -324,7 +324,7 @@ pa_plot.yield <- function(x,
                                       fill = 'removed polygons'))+
         ggplot2::labs(col = '', fill = '', title = 'Removed polygons')
       
-      if (length(removed.indices) < 1){
+      if (sum(removed.indices) < 1){
         if (!s.wrns)
           warning('No points removed. Plot showing removed points will not be produced.')
         p4 <- NULL 

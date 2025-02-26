@@ -195,7 +195,7 @@ pa_apportion_mass <- function(polygons,
 
 
   if(is.null(cell.size)){
-    cell.size <-   2 * sqrt(stats::median(sf::st_area(polygons)))
+    cell.size <-  sqrt(stats::median(sf::st_area(polygons)))
     cell.size <- as.numeric(cell.size)
   }
 

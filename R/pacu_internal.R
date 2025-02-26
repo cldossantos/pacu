@@ -436,18 +436,19 @@
 #'
 #' @title Aligns the bounding box of stars objects in a list
 #' @description  Aligns the bounding box of stars objects in a list
-#' @name .pa_alig_bbox
-#' @rdname .pa_alig_bbox
+#' @name .pa_align_bbox
 #' @param object a list contaning stars objects
 #' @return a list containing stars objects
 #' @noRd
 .pa_align_bbox <- function(object){
+  crt.crs <- sf::st_crs(object[[1]])
+  object <- lapply(object, function(x) stars::st_warp(x, crs = crt.crs))
   exts <- lapply(object, function(x) sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(x))))
   ext <- Reduce(function(x, y) {sf::st_union(x, y)},
                 x = exts)
+  dx <- dy <- unname(st_res(object[[1]])[1])
+  new.bb <- stars::st_as_stars(sf::st_bbox(ext), dx = dx, dy = dy)
   for ( i in 1:length(object)){
-    dx <- dy <- unname(st_res(object[[i]])[1])
-    new.bb <- stars::st_as_stars(sf::st_bbox(ext), dx = dx, dy = dy)
     aligned <- stars::st_warp(object[[i]], new.bb)
     aligned <- stars::st_set_dimensions(aligned, which = 'time',
                                         value = stars::st_get_dimension_values(object[[i]], 'time'))
