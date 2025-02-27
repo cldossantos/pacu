@@ -91,6 +91,8 @@ pa_compute_vi <- function(satellite.images,
   if(is.null(aoi) && check.clouds == TRUE) 
     stop('When check.clouds is TRUE, aoi must be supplied')
   
+  if(length(satellite.images) < 1)
+    stop('There are no images in satellite.images')
   
   
   ibands <- list(ndvi = c('B08', 'B04'),

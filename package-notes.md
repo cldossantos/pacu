@@ -1,3 +1,11 @@
+## 2025-02-26
+
+- Version 0.1.50
+
+- Better error messages for pa_download_dataspace, pa_compute_vi, and pa_get_rgb
+- Added the function .pa_check_zip_integrity. This function runs when pa_download_dataspace
+finishes. If a file is corrupted, it is removed.
+
 ## 2025-02-18
 
 - Version 0.1.49

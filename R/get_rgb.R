@@ -52,6 +52,9 @@ pa_get_rgb <- function(satellite.images,
       return(NULL)
     }
   }
+  
+  if(length(satellite.images) < 1)
+    stop('There are no images in satellite.images')
 
   if(verbose == 1){
     progress.bar <- utils::txtProgressBar(min = 0, 

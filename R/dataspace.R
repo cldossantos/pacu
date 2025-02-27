@@ -291,6 +291,9 @@ pa_download_dataspace <- function(x,
   
   if(!inherits(aoi, 'sf') && !is.null(aoi))
     stop('aoi must be an sf object')
+  
+  if(length(x) < 1)
+    stop('There are no images in x')
 
   # Checking dependencies
   req.namespaces <- c('jsonlite', 'httr')
@@ -314,6 +317,9 @@ pa_download_dataspace <- function(x,
     dir.create(dir.path, showWarnings = FALSE, recursive = TRUE)
   }
 
+  outpaths <- unname(sapply(x$Name, function(z) file.path(dir.path, gsub('.SAFE', '.zip', z))))
+  on.exit(.pa_check_zip_integrity(outpaths), add = TRUE)
+  
   if(!is.null(dir.path)){
     if (!dir.exists(dir.path))
       stop('The path provided to dir.path does not exist')
@@ -331,7 +337,7 @@ pa_download_dataspace <- function(x,
   ## Go down the list of images to be downloaded
   for (i in 1:length(x$Id)){
 
-    outpath <- file.path(dir.path, gsub('.SAFE', '.zip', x$Name[i]))
+    outpath <- outpaths[i]
 
     ## Checking for files that have been downloaded previously
     if (file.exists(outpath)) {

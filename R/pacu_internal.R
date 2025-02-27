@@ -500,6 +500,31 @@
   return(res)
 }
 
+
+
+#'
+#' @title Checks the integrity of the Dataspace
+#' @description  Checks the integrity of the zip files downloaded
+#' from Dataspace
+#' @name .pa_check_zip_integrity
+#' @rdname .pa_check_zip_integrity
+#' @param x a list of zip files to check
+#' @return No return value, called for side effects
+#' @noRd
+.pa_check_zip_integrity <- function(x){
+  s.wrns <-  get("suppress.warnings", envir = pacu.options)
+  x <- x[file.exists(x)]
+  x <- x[grepl('\\.zip', x)]
+  for (i in 1:length(x)){
+    val <- try(suppressWarnings(utils::unzip(x[i], list  = TRUE)), silent = TRUE)
+    if (inherits(val, 'try-error') || is.null(val)){
+      if (!s.wrns)
+        warning('File ', x[i], ' is corrupted and will be removed.')
+      file.remove(x[i])
+    }
+  }
+}
+
 ## Weather ----
 #' Convert the units in a met file to standard units
 #' @name .pa_convert_met_to_standard
