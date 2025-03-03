@@ -1,3 +1,12 @@
+
+## 2025-03-03
+
+- Version 0.1.51
+
+- Updated the pa_plot function to be compatible with tmap v4.
+Had problem with the argument "interactive" in the rgb function, and 
+with legend.outside in all functions.
+
 ## 2025-02-26
 
 - Version 0.1.50

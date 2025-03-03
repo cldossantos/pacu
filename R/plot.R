@@ -5,97 +5,14 @@
 #' @return No return value, called for side effects
 #' @export
 pa_plot <- function(x, ...){
+  if (utils::packageVersion('tmap') < '4.0'){
+    stop('Please update the "tmap" library to a version 4.0
+         or greater.')
+  }
   UseMethod('pa_plot', x)
 }
 
-#' @param ... additional arguments. None used currently.
-#' @param plot.type type of plot to be produced Defaults to
-#'   trial.
-#' @param palette a string representing a color palette from
-#'   \link[grDevices]{hcl.pals}. Defaults to \sQuote{Temps}.
-#' @param main a main title for the plot
-#' @param plot.var the name of the column to be plotted.
-#'   Defaults to \sQuote{yield}
-#' @param style style applied to the colors
-#' @param interactive logical. Whether to produce
-#'   interactive plots.
-#' @param border.col color of the border for the polygons
-#'   plotted in the yield map
-#' @param scale a numerical value indicating the
-#'   magnification of the graph. A value of 1 produces a
-#'   plot using the default magnification. Greater values
-#'   will produce zoomed in plots.
-#' @param frame logical. Whether to draw the frame around
-#'   the plotting area.
-#' @param legend.outside logical. Whether to place the legend outside of the graph.
-#' @param nbreaks numerical value indicating the number of breaks for the color scale.
-#' @param breaks a vector indicating numerical breaks for the color scale.
-#' @rdname pa_plot
-#' @export
-#'
-pa_plot.trial <- function(x,
-                          ...,
-                          plot.type = c('trial'),
-                          palette = 'Temps',
-                          main = '',
-                          plot.var = NULL,
-                          interactive = FALSE,
-                          border.col = 'black',
-                          style =  c("quantile", "pretty", 'equal'),
-                          scale = 1,
-                          nbreaks = 5,
-                          breaks = NULL,
-                          frame = TRUE,
-                          legend.outside = FALSE){
-  
-  plot.type <- match.arg(plot.type)
-  style <- match.arg(style)
-  
-  s.wrns <-  get("suppress.warnings", envir = pacu.options)
-  s.msgs <-  get("suppress.messages", envir = pacu.options)
-  
-  if(is.null(plot.var))
-    plot.var <- attr(x$trial, 'resp')
-  
-  if(plot.type == 'trial'){
-    
-    tmap::tmap_options(overlays = NULL, basemaps = NULL)
-    ## controlling the colors
-    cols <- function(n) {hcl.colors(n, palette, rev = TRUE)}
-    ## setting the tmap mode
-    if(interactive){suppressMessages(tmap::tmap_mode("view"))} else {suppressMessages(tmap::tmap_mode('plot'))}
-    ## the basic plot
-    p <- tmap::tm_shape(x$trial)
-    
-    
-    if (sf::st_geometry_type(x$trial[1, ]) %in% c("POLYGON", 'MULTIPOLYGON')){
-      p <- p +
-        tmap::tm_borders(col = border.col,
-                         lwd = 0.5) +
-        tmap::tm_fill(plot.var,
-                      palette = cols(nbreaks), title = attr(x$trial, 'units'),
-                      style = style,
-                      style.args = list(n = nbreaks))
-      
-    }
-    
-    if (sf::st_geometry_type(x$trial[1, ]) %in% c("POINT", 'MULTIPOINT')){
-      p <- p + tmap::tm_dots(col = plot.var,
-                             palette = cols(nbreaks), title = attr(x$trial, 'units'),
-                             style = style,
-                             style.args = list(n = nbreaks))
-      
-    }
-    ## adjusting the layout
-    p <- p + tmap::tm_layout(main.title = main,
-                             scale = scale,
-                             frame = frame,
-                             legend.outside = legend.outside,
-                             title.size = 1)
-    
-    print(p)
-  }
-}
+
 
 #' @param ... additional arguments. None used currently.
 #' @param plot.type type of plot to be produced Defaults to
@@ -153,39 +70,51 @@ pa_plot.yield <- function(x,
   
   if(plot.type == 'yieldmap'){
     
-    tmap::tmap_options(overlays = NULL, basemaps = NULL)
+    tmap::tmap_options(tiles.server = NULL, basemap.server  = NULL)
     ## controlling the colors
     cols <- function(n) {hcl.colors(n, palette, rev = TRUE)}
     ## setting the tmap mode
     if(interactive){suppressMessages(tmap::tmap_mode("view"))} else {suppressMessages(tmap::tmap_mode('plot'))}
     ## the basic plot
-    p <- tmap::tm_shape(x$yield)
     
+    
+    p <- tmap::tm_shape(x$yield,
+                        bbox = extent)
     
     if (sf::st_geometry_type(x$yield[1, ]) %in% c("POLYGON", 'MULTIPOLYGON')){
       p <- p +
         tmap::tm_borders(col = border.col,
                          lwd = 0.5) +
-        tmap::tm_fill(plot.var,
-                      palette = cols(nbreaks), title = attr(x$yield, 'units'),
-                      style = style,
-                      style.args = list(n = nbreaks))
+        tmap::tm_polygons(fill = plot.var,
+                          fill.legend = tmap::tm_legend(
+                            title = attr(x$yield, 'units')),
+                          fill.scale = tmap::tm_scale_intervals(
+                            n = nbreaks, 
+                            style =  style,
+                            values = cols(nbreaks)
+                          ),
+                          col = border.col)
       
     }
     
     if (sf::st_geometry_type(x$yield[1, ]) %in% c("POINT", 'MULTIPOINT')){
-      p <- p + tmap::tm_dots(col = plot.var,
-                             palette = cols(nbreaks), title = attr(x$yield, 'units'),
-                             style = style,
-                             style.args = list(n = nbreaks))
+      p <- p + tmap::tm_dots(fill = plot.var,
+                             fill.scale = tmap::tm_scale_intervals(
+                               n = nbreaks,
+                               style = style,
+                               values = cols(nbreaks)
+                             ),
+                             fill.legend = tmap::tm_legend(
+                               title = attr(x$yield, 'units')
+                             ))
       
     }
     ## adjusting the layout
-    p <- p + tmap::tm_layout(main.title = main,
-                             scale = scale,
-                             frame = frame,
-                             legend.outside = legend.outside,
-                             title.size = 1)
+    p <- p + 
+      tmap::tm_layout(scale = scale,
+                      frame = frame,
+                      title.size = 1)+
+      tmap::tm_title(text = main)
     
     print(p)
   }
@@ -370,6 +299,106 @@ pa_plot.yield <- function(x,
 }
 
 
+#' @param ... additional arguments. None used currently.
+#' @param plot.type type of plot to be produced Defaults to
+#'   trial.
+#' @param palette a string representing a color palette from
+#'   \link[grDevices]{hcl.pals}. Defaults to \sQuote{Temps}.
+#' @param main a main title for the plot
+#' @param plot.var the name of the column to be plotted.
+#'   Defaults to \sQuote{yield}
+#' @param style style applied to the colors
+#' @param interactive logical. Whether to produce
+#'   interactive plots.
+#' @param border.col color of the border for the polygons
+#'   plotted in the yield map
+#' @param scale a numerical value indicating the
+#'   magnification of the graph. A value of 1 produces a
+#'   plot using the default magnification. Greater values
+#'   will produce zoomed in plots.
+#' @param frame logical. Whether to draw the frame around
+#'   the plotting area.
+#' @param legend.outside logical. Whether to place the legend outside of the graph.
+#' @param nbreaks numerical value indicating the number of breaks for the color scale.
+#' @param breaks a vector indicating numerical breaks for the color scale.
+#' @rdname pa_plot
+#' @export
+#'
+pa_plot.trial <- function(x,
+                          ...,
+                          plot.type = c('trial'),
+                          palette = 'Temps',
+                          main = '',
+                          plot.var = NULL,
+                          interactive = FALSE,
+                          border.col = 'black',
+                          style =  c("quantile", "pretty", 'equal'),
+                          scale = 1,
+                          nbreaks = 5,
+                          breaks = NULL,
+                          frame = TRUE,
+                          extent = sf::st_bbox(x[['trial']]),
+                          legend.outside = FALSE){
+  
+  plot.type <- match.arg(plot.type)
+  style <- match.arg(style)
+  
+  s.wrns <-  get("suppress.warnings", envir = pacu.options)
+  s.msgs <-  get("suppress.messages", envir = pacu.options)
+  
+  if(is.null(plot.var))
+    plot.var <- attr(x$trial, 'resp')
+  
+  if(plot.type == 'trial'){
+    
+    tmap::tmap_options(tiles.server = NULL, basemap.server  = NULL)
+    ## controlling the colors
+    cols <- function(n) {hcl.colors(n, palette, rev = TRUE)}
+    ## setting the tmap mode
+    if(interactive){suppressMessages(tmap::tmap_mode("view"))} else {suppressMessages(tmap::tmap_mode('plot'))}
+    ## the basic plot
+    p <- tmap::tm_shape(x$trial,
+                        bbox = extent)
+    
+    if (sf::st_geometry_type(x$trial[1, ]) %in% c("POLYGON", 'MULTIPOLYGON')){
+      p <- p +
+        tmap::tm_borders(col = border.col,
+                         lwd = 0.5) +
+        tmap::tm_polygons(fill = plot.var,
+                          fill.legend = tmap::tm_legend(
+                            title = attr(x$trial, 'units')),
+                          fill.scale = tmap::tm_scale_intervals(
+                            n = nbreaks, 
+                            style =  style,
+                            values = cols(nbreaks)
+                          ),
+                          col = border.col)
+      
+    }
+    
+    if (sf::st_geometry_type(x$trial[1, ]) %in% c("POINT", 'MULTIPOINT')){
+      p <- p + tmap::tm_dots(fill = plot.var,
+                             fill.scale = tmap::tm_scale_intervals(
+                               n = nbreaks,
+                               style = style,
+                               values = cols(nbreaks)
+                             ),
+                             fill.legend = tmap::tm_legend(
+                               title = attr(x$trial, 'units')
+                             ))
+      
+    }
+    ## adjusting the layout
+    p <- p + 
+      tmap::tm_layout(scale = scale,
+                      frame = frame,
+                      title.size = 1)+
+      tmap::tm_title(text = main)
+    
+    print(p)
+  }
+}
+
 
 
 
@@ -420,9 +449,11 @@ pa_plot.veg.index <- function(x,
   
   if(is.raster){
     p <- tmap::tm_shape(x)
-    p <- p + tmap::tm_raster(palette = cols(nbreaks),
-                             style = style,
-                             style.args = list(n = nbreaks))
+    p <- p + tmap::tm_raster(col.scale = tmap::tm_scale_intervals(
+      n = nbreaks, 
+      style =  style,
+      values = cols(nbreaks)
+    ))
   }
 
 
@@ -431,15 +462,22 @@ pa_plot.veg.index <- function(x,
     p <- p +
       tmap::tm_borders(col = border.col,
                        lwd = 0.5) +
-      tmap::tm_fill(plot.var,
-                    palette = cols(nbreaks),
-                  style = style,
-                  style.args = list(n = nbreaks))
-
+      tmap::tm_polygons(fill = plot.var,
+                        fill.legend = tmap::tm_legend(
+                          title = attr(x$yield, 'units')),
+                        fill.scale = tmap::tm_scale_intervals(
+                          n = nbreaks, 
+                          style =  style,
+                          values = cols(nbreaks)
+                        ),
+                        col = border.col)
   }
 
 
-    p <- p + tmap::tm_layout(legend.outside = T)
+    p <- p + 
+      tmap::tm_layout(frame = frame,
+                      title.size = 1)+
+      tmap::tm_title(text = main)
 
   print(suppressWarnings(p))
   }
@@ -469,6 +507,7 @@ pa_plot.veg.index <- function(x,
 #' @export
 pa_plot.rgb <- function(x,
                         ...,
+                        main = '',
                         interactive = FALSE,
                         saturation = 1,
                         alpha = 1,
@@ -479,34 +518,19 @@ pa_plot.rgb <- function(x,
   sx <- structure(x)
   sm <- sapply(sx, max, na.rm = TRUE)
   
-  time.points <- stars::st_get_dimension_values(x, 'time')
-  
-  
-  p <- list()
-  for (t in 1:length(time.points)) {
-    one.img <- x[, , , t]
-    one.img <-  stars::st_redimension(one.img,
-                                      new_dims = dim(one.img)[1:2])
-    
-    sx <- structure(one.img)
-    sm <- sapply(sx, max, na.rm = TRUE)
-    g <- tmap::tm_shape(one.img)+
-      tmap::tm_rgb(max.value = max(sm),
-                   saturation = saturation,
-                   alpha = alpha,
-                   interpolate = interpolate)+
-      tmap::tm_layout(main.title = as.character(time.points[t]))
-    p[[length(p) + 1]] <-  g
-    
-    
-    p <- tmap::tmap_arrange(p)
-    
-    
-  }
-  
+  p <- tmap::tm_shape(x)+
+    tmap::tm_rgb(col.scale = tmap::tm_scale_rgb(
+      max_color_value = max(sm)
+    ),
+    col_alpha = alpha,
+    options = tmap:::opt_tm_rgb(interpolate = interpolate,
+                                saturation = saturation))+
+    tmap::tm_title(text = main)
   
   print(p)
 }
+
+
 
 
 
