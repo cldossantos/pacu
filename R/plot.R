@@ -6,8 +6,7 @@
 #' @export
 pa_plot <- function(x, ...){
   if (utils::packageVersion('tmap') < '4.0'){
-    stop('Please update the "tmap" library to a version 4.0
-         or greater.')
+    stop('Please update the "tmap" library to a version >= 4.0.')
   }
   UseMethod('pa_plot', x)
 }

@@ -169,7 +169,10 @@ pa_get_vi_stats<- function(aoi,
   res <- subset(res, !is.na(res[[3]]))
   res <- res[order(res$time, res$id), ]
   row.names(res) <- NULL
-  geometry.col <- grep('geometry|^x$', names(res), value = TRUE)[1]
+  geometry.col <- attr(res, 'sf_column')
+  
+  if(geometry.col != 'geometry')
+    sf::st_geometry(res) <- 'geometry'
 
   res <- sf::st_as_sf(res)
   res <-  sf::st_transform(res, sf::st_crs(initial.aoi))

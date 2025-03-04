@@ -525,6 +525,290 @@
   }
 }
 
+
+
+
+#'
+#' @title Predicts cardinal dates
+#' @description Predicts cardinal dates
+#' @name .pa_predict_cardinal_dates
+#' @rdname .pa_predict_cardinal_dates
+#' @param df a data frame with columns: doy, rvalue
+#' @param model string representing which model to use
+#' to predict cardinal dates
+#' @param prior.means a vector of length three with prior mean values
+#' @param prior.vars a vector of length three with prior variance values
+#' @return vector of length three with cardinal date predictions
+#' @noRd
+.pa_predict_cardinal_dates <- function(df,
+                                       model = c("card3", "scard3", "agauss", "harmonic"),
+                                       prior.means,
+                                       prior.vars,
+                                       verbose = FALSE) {
+  ### The assumption is that 'data' should have:
+  ### 1) doy
+  ### 2) rvalue
+  model <- match.arg(model)
+  algorithm <- "prior"
+
+  ## Rescaling the predictor variable
+  ## this helps with convergence of the nls algorithm
+  df$doy <- df$doy / 365
+
+  ### First step is to fit a nonlinear model
+  ### First we try using 'nls', if it fails, we try using 'minpack.lm::nlsLM'
+  ### If we still fail, we return the prior
+  if (model == "card3") {
+    fnls <- try(stats::nls(rvalue ~ nlraa::SScard3(doy, tb, to, tm),
+      data = df
+    ), silent = TRUE)
+
+    algorithm <- "nls"
+
+    if (inherits(fnls, "try-error")) {
+      fnls <- try(minpack.lm::nlsLM(rvalue ~ nlraa::SScard3(doy, tb, to, tm),
+        data = df
+      ), silent = TRUE)
+
+      algorithm <- "LM"
+
+      if (inherits(fnls, "try-error")) {
+        if (verbose) warning("Model fitting failed Returning the prior")
+        attr(prior.means, "algorithm") <- algorithm
+        return(prior.means)
+      }
+    }
+    R2 <- nlraa::R2M(fnls)
+    cfs <- coef(fnls)
+    nls.vars <- summary(fnls)$coefficients[, 2]^2
+  }
+
+  if (model == "scard3") {
+    fnls <- try(stats::nls(rvalue ~ nlraa::SSscard3(doy, tb, to, tm),
+      data = df
+    ), silent = TRUE)
+
+    algorithm <- "nls"
+
+    if (inherits(fnls, "try-error")) {
+      fnls <- try(minpack.lm::nlsLM(rvalue ~ nlraa::SSscard3(doy, tb, to, tm),
+        data = df
+      ), silent = TRUE)
+
+      algorithm <- "LM"
+
+      if (inherits(fnls, "try-error")) {
+        if (verbose) warning("Model fitting failed. Returning the prior")
+        attr(prior.means, "algorithm") <- algorithm
+        return(prior.means)
+      }
+    }
+    R2 <- nlraa::R2M(fnls)
+    cfs <- coef(fnls)
+    nls.vars <- summary(fnls)$coefficients[, 2]^2
+    # fnls.bt <- nlraa::boot_nls(fnls, data = data, verbose = FALSE)
+    # nls.vars <- apply(fnls.bt$t, 2, stats::var, na.rm = TRUE)
+  }
+
+  if (model == "agauss") {
+    delta.start <- prior.means[2] / 365
+    sigma1.start <- (prior.means[2] - prior.means[1]) / (2 * 365)
+    sigma2.start <- (prior.means[3] - prior.means[2]) / (2 * 365)
+
+    fnls <- try(stats::nls(rvalue ~ nlraa::SSagauss(doy, eta = 1, beta = 0, delta, sigma1, sigma2),
+      start = list(delta = delta.start, sigma1 = sigma1.start, sigma2 = sigma2.start),
+      data = df
+    ), silent = TRUE)
+
+    algorithm <- "nls"
+
+    if (inherits(fnls, "try-error")) {
+      fnls <- try(minpack.lm::nlsLM(rvalue ~ nlraa::SSagauss(doy, eta = 1, beta = 0, delta, sigma1, sigma2),
+        start = list(delta = delta.start, sigma1 = sigma1.start, sigma2 = sigma2.start),
+        data = df
+      ), silent = TRUE)
+
+      algorithm <- "LM"
+
+      if (inherits(fnls, "try-error")) {
+        if (verbose) warning("Model fitting failed. Returning the prior")
+        attr(prior.means, "algorithm") <- algorithm
+        return(prior.means)
+      }
+    }
+    R2 <- nlraa::R2M(fnls)
+    delta.tb <- car::deltaMethod(fnls, "-2 * sigma1 + delta")
+    delta.tm <- car::deltaMethod(fnls, "2 * sigma2 + delta")
+    delta.to <- car::deltaMethod(fnls, "delta")
+    cfs <- c(delta.tb[[1]], delta.to[[1]], delta.tm[[1]])
+    ### Need to compute the nls.vars
+    nls.vars <- c(delta.tb[[2]], delta.to[[2]], delta.tm[[2]])^2
+  }
+
+  if (model == "harmonic") {
+    algorithm <- "lm"
+
+    fnls <- try(stats::lm(rvalue ~ I(doy) + I(sin(2 * pi * doy)) + I(cos(2 * pi * doy)) +
+      I(sin(4 * pi * doy)) + I(cos(4 * pi * doy)), data = df))
+
+    harm.dates <- try(.pa_predict_harmonic_dates(coef(fnls), vcov(fnls), scaling.factor = 1))
+    if (inherits(fnls, "try-error") || any(is.na(harm.dates))) {
+      if (verbose) warning("Model fitting failed. Returning the prior")
+      attr(prior.means, "algorithm") <- algorithm
+      return(prior.means)
+    }
+    cfs <- c(harm.dates)
+    nls.vars <- c(attr(harm.dates, "se"))^2
+    R2 <- nlraa::R2M(fnls)
+  }
+
+
+  ### Compute the posterior estimate
+  ans <- numeric(3)
+  sds <- numeric(3)
+
+
+  ## Bringing the model estimates back to "day of the year"
+  cfs <- cfs * 365
+  nls.vars <- nls.vars * (365**2)
+
+  for (i in 1:3) {
+    ans[i] <- (1 / prior.vars[i] * prior.means[i] + 1 / nls.vars[i] * cfs[i]) / (1 / prior.vars[i] + 1 / nls.vars[i])
+    tau1 <- 1 / (1 / prior.vars[i] + 1 / nls.vars[i])
+    sds[i] <- sqrt(tau1)
+  }
+
+
+  attr(ans, "algorithm") <- algorithm
+  attr(ans, "R2") <- R2$R2
+  attr(ans, "stds") <- sds
+  return(round(ans, 8))
+}
+
+
+#'
+#' @title Extract cardinal dates from harmonic regression coefficients
+#' @description Extract cardinal dates from harmonic regression coefficients
+#' @name .pa_get_dates_harmonic_regression
+#' @rdname .pa_get_dates_harmonic_regression
+#' @param betas a vector of length 6 with the parameter values of 
+#' a harmonic regression fit
+#' @param scaling.factor the scaling factor used in the harmonic regression. 365 if 
+#' the x variable was day of the year. 1 if the x variable was fraction of the year (0-1).
+#' @return vector of length three with cardinal date predictions from a harmonic fit
+#' @noRd
+.pa_get_dates_harmonic_regression <- function(betas, scaling.factor = 365) {
+  if (length(betas) != 6) {
+    stop("betas should be of length 6")
+  }
+  harmonic_gradient <- deriv(
+    y ~ b0 + b1 * x / scaling.factor + b2 * sin(2 * pi * x / scaling.factor) +
+      b3 * cos(2 * pi * x / scaling.factor) +
+      b4 * sin(4 * pi * x / scaling.factor) + b5 * cos(4 * pi * x / scaling.factor),
+    c("x"),
+    function.arg = c(
+      "x", "scaling.factor", "b0", "b1", "b2", "b3",
+      "b4", "b5"
+    ),
+    hessian = TRUE
+  )
+
+  preds <- function(x, scaling.factor, b0, b1, b2, b3, b4, b5) {
+    b0 + b1 * x / scaling.factor + b2 * sin(2 * pi * x / scaling.factor) +
+      b3 * cos(2 * pi * x / scaling.factor) +
+      b4 * sin(4 * pi * x / scaling.factor) + b5 * cos(4 * pi * x / scaling.factor)
+  }
+
+  get_gradient <- function(deriv_obj, ...) {
+    gr <- deriv_obj(...)
+    gr <- attr(gr, "gradient")
+    gr
+  }
+  xseq <- scaling.factor * seq(0, 1, length.out = 366)
+  gradient <- harmonic_gradient(xseq,
+    scaling.factor = scaling.factor,
+    b0 = betas[1], b1 = betas[2], b2 = betas[3],
+    b3 = betas[4], b4 = betas[5], b5 = betas[6]
+  )
+  gradient <- attr(gradient, "gradient")
+  gradient.sign <- sign(gradient)
+  turning.points <- xseq[which(diff(gradient.sign) != 0)]
+
+  roots <- c()
+  for (i in turning.points) {
+    root <- try(
+      uniroot(
+        f = get_gradient, interval = c(i, i + (scaling.factor / 365)),
+        deriv_obj = harmonic_gradient,
+        scaling.factor = scaling.factor,
+        b0 = betas[1], b1 = betas[2], b2 = betas[3],
+        b3 = betas[4], b4 = betas[5], b5 = betas[6]
+      ),
+      silent = TRUE
+    )
+
+    if (!inherits(root, "try-error")) {
+      roots <- c(roots, root$root)
+    }
+  }
+  to.index <- which.max(
+    preds(
+      x = roots,
+      scaling.factor = scaling.factor,
+      b0 = betas[1], b1 = betas[2], b2 = betas[3],
+      b3 = betas[4], b4 = betas[5], b5 = betas[6]
+    )
+  )
+  to <- roots[to.index]
+  tb <- roots[to.index - 1]
+  tm <- roots[to.index + 1]
+
+  if (length(to) < 1 || length(tb) < 1 || length(tm) < 1) {
+    warning("Could not find all three roots for this function")
+    return(c(tb = NA, to = NA, tm = NA))
+  }
+  card.dates <- c(tb, to, tm)
+  return(card.dates)
+}
+
+
+#'
+#' @title Extract cardinal dates from harmonic regression coefficients
+#' @description Extract cardinal dates from harmonic regression coefficients
+#' @name .pa_predict_harmonic_dates
+#' @rdname .pa_predict_harmonic_dates
+#' @param betas a vector of length 6 with the parameter values of 
+#' a harmonic regression fit
+#' @param sigma variance-covariance matrix of the harmonic regression fit
+#' @param nsim number of simulations performed to estimate the standard deviation
+#' @param scaling.factor the scaling factor used in the harmonic regression. 365 if 
+#' the x variable was day of the year. 1 if the x variable was fraction of the year (0-1).
+#' @return vector of length three with cardinal date predictions from a harmonic fit
+#' @noRd
+#' 
+.pa_predict_harmonic_dates <- function(
+    betas,
+    sigma,
+    nsim = 1e3,
+    scaling.factor = 365) {
+  coef.samples <- MASS::mvrnorm(n = nsim, mu = betas, Sigma = sigma)
+
+  if (!inherits(coef.samples, "matrix")) {
+    coef.samples <- matrix(coef.samples, ncol = 6)
+  }
+  cdates.samples <- suppressWarnings(apply(coef.samples, 1, function(x) {
+    .pa_get_dates_harmonic_regression(x, scaling.factor)
+  }))
+  cdates.mc <- apply(cdates.samples, 1, function(x) {
+    c(mean = mean(x, na.rm = TRUE), sd = sd(x, na.rm = TRUE))
+  })
+  cdates <- cdates.mc[1, ]
+  attr(cdates, "se") <- cdates.mc[2, ]
+  cdates
+}
+
+
+
 ## Weather ----
 #' Convert the units in a met file to standard units
 #' @name .pa_convert_met_to_standard
