@@ -579,7 +579,7 @@
       }
     }
     R2 <- nlraa::R2M(fnls)
-    cfs <- coef(fnls)
+    cfs <- stats::coef(fnls)
     nls.vars <- summary(fnls)$coefficients[, 2]^2
   }
 
@@ -604,7 +604,7 @@
       }
     }
     R2 <- nlraa::R2M(fnls)
-    cfs <- coef(fnls)
+    cfs <- stats::coef(fnls)
     nls.vars <- summary(fnls)$coefficients[, 2]^2
     # fnls.bt <- nlraa::boot_nls(fnls, data = data, verbose = FALSE)
     # nls.vars <- apply(fnls.bt$t, 2, stats::var, na.rm = TRUE)
@@ -651,7 +651,7 @@
     fnls <- try(stats::lm(rvalue ~ I(doy) + I(sin(2 * pi * doy)) + I(cos(2 * pi * doy)) +
       I(sin(4 * pi * doy)) + I(cos(4 * pi * doy)), data = df))
 
-    harm.dates <- try(.pa_predict_harmonic_dates(coef(fnls), vcov(fnls), scaling.factor = 1))
+    harm.dates <- try(.pa_predict_harmonic_dates(stats::coef(fnls), stats::vcov(fnls), scaling.factor = 1))
     if (inherits(fnls, "try-error") || any(is.na(harm.dates))) {
       if (verbose) warning("Model fitting failed. Returning the prior")
       attr(prior.means, "algorithm") <- algorithm
@@ -701,7 +701,7 @@
   if (length(betas) != 6) {
     stop("betas should be of length 6")
   }
-  harmonic_gradient <- deriv(
+  harmonic_gradient <- stats::deriv(
     y ~ b0 + b1 * x / scaling.factor + b2 * sin(2 * pi * x / scaling.factor) +
       b3 * cos(2 * pi * x / scaling.factor) +
       b4 * sin(4 * pi * x / scaling.factor) + b5 * cos(4 * pi * x / scaling.factor),
@@ -737,7 +737,7 @@
   roots <- c()
   for (i in turning.points) {
     root <- try(
-      uniroot(
+      stats::uniroot(
         f = get_gradient, interval = c(i, i + (scaling.factor / 365)),
         deriv_obj = harmonic_gradient,
         scaling.factor = scaling.factor,
@@ -800,7 +800,7 @@
     .pa_get_dates_harmonic_regression(x, scaling.factor)
   }))
   cdates.mc <- apply(cdates.samples, 1, function(x) {
-    c(mean = mean(x, na.rm = TRUE), sd = sd(x, na.rm = TRUE))
+    c(mean = mean(x, na.rm = TRUE), sd = stats::sd(x, na.rm = TRUE))
   })
   cdates <- cdates.mc[1, ]
   attr(cdates, "se") <- cdates.mc[2, ]

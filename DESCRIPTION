@@ -29,4 +29,8 @@ Suggests:
     mgcv,
     nasapower,
     spData,
-    rmarkdown
+    rmarkdown,
+    nlraa,
+    car,
+    minpack.lm,
+    MASS

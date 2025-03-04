@@ -17,6 +17,8 @@ pa_cardinal_dates <- function(x, ...) {
 #' @param y vector containing the satellite data value
 #' @param baseline.months vector containing the months used as a baseline reference for 
 #' when there are no crops in the field. For example, c(1:3, 12) represent Jan, Feb, Mar, and Dec.
+#' @param model a string naming the model to be used to estimate cardinal dates
+#' @param index vegetation index supplied to x
 #' @param prior.means a vector of length three containing the prior means for cardinal dates
 #' @param prior.vars a vector of length three containing the prior variances for cardinal dates
 #' @param bias.correction a vector of length three containing the bias correction factor for cardinal dates
@@ -111,7 +113,7 @@ pa_cardinal_dates.vector <- function(x,
 }
 
 
-
+#' @param ... additional arguments
 #' @rdname pa_cardinal_dates
 #' @export
 

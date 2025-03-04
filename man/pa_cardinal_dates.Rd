@@ -25,10 +25,16 @@ pa_cardinal_dates(x, ...)
 \item{x}{vector containing the date or day of the year of that
 the satellite data was collected}
 
+\item{...}{additional arguments}
+
 \item{y}{vector containing the satellite data value}
 
 \item{baseline.months}{vector containing the months used as a baseline reference for 
 when there are no crops in the field. For example, c(1:3, 12) represent Jan, Feb, Mar, and Dec.}
+
+\item{model}{a string naming the model to be used to estimate cardinal dates}
+
+\item{index}{vegetation index supplied to x}
 
 \item{prior.means}{a vector of length three containing the prior means for cardinal dates}
 
