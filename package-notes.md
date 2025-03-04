@@ -1,3 +1,8 @@
+## 2025-03-04
+
+- Version 0.1.52
+
+- Included the function pa_cardinal_dates. Still testing it.
 
 ## 2025-03-03
 
