@@ -425,7 +425,7 @@ pa_plot.veg.index <- function(x,
                               legend.outside = FALSE,
                               legend.title = NULL,
                               pch = 16) {
-
+  
   plot.type <- match.arg(plot.type)
   
   
@@ -434,51 +434,53 @@ pa_plot.veg.index <- function(x,
     plot.var <- attr(x, 'vegetation.index')
   
   if (plot.type == 'spatial'){
-  
-  initial.options <- tmap::tmap_options()
-  tmap::tmap_options(show.warnings = FALSE)
-  on.exit(suppressMessages(tmap::tmap_options(initial.options)))
-
-  is.raster <- inherits(try(sf::st_geometry_type(x), silent = TRUE), 'try-error')
-  style <- match.arg(style)
-
-  ## controlling the colors
-  cols <- function(n) {hcl.colors(n, palette, rev = TRUE)}
-  ndates <- stars::st_get_dimension_values(x, 'time')
-  
-  if(is.raster){
-    p <- tmap::tm_shape(x)
-    p <- p + tmap::tm_raster(col.scale = tmap::tm_scale_intervals(
-      n = nbreaks, 
-      style =  style,
-      values = cols(nbreaks)
-    ))
-  }
-
-
-  if(!is.raster){
-    p <- tmap::tm_shape(x[plot.var])
-    p <- p +
-      tmap::tm_borders(col = border.col,
-                       lwd = 0.5) +
-      tmap::tm_polygons(fill = plot.var,
-                        fill.legend = tmap::tm_legend(
-                          title = attr(x$yield, 'units')),
-                        fill.scale = tmap::tm_scale_intervals(
-                          n = nbreaks, 
-                          style =  style,
-                          values = cols(nbreaks)
-                        ),
-                        col = border.col)
-  }
-
-
+    
+    initial.options <- tmap::tmap_options()
+    tmap::tmap_options(show.warnings = FALSE)
+    on.exit(suppressMessages(tmap::tmap_options(initial.options)))
+    
+    is.raster <- inherits(try(sf::st_geometry_type(x), silent = TRUE), 'try-error')
+    style <- match.arg(style)
+    
+    ## controlling the colors
+    cols <- function(n) {hcl.colors(n, palette, rev = TRUE)}
+    ndates <- stars::st_get_dimension_values(x, 'time')
+    
+    if(is.raster){
+      p <- tmap::tm_shape(x)
+      p <- p + tmap::tm_raster(
+        col.scale = tmap::tm_scale_intervals(
+          n = nbreaks, 
+          style =  style,
+          values = cols(nbreaks),
+          midpoint = NA
+        ))
+    }
+    
+    
+    if(!is.raster){
+      p <- tmap::tm_shape(x[plot.var])
+      p <- p +
+        tmap::tm_borders(col = border.col,
+                         lwd = 0.5) +
+        tmap::tm_polygons(fill = plot.var,
+                          fill.legend = tmap::tm_legend(
+                            title = attr(x$yield, 'units')),
+                          fill.scale = tmap::tm_scale_intervals(
+                            n = nbreaks, 
+                            style =  style,
+                            values = cols(nbreaks)
+                          ),
+                          col = border.col)
+    }
+    
+    
     p <- p + 
       tmap::tm_layout(frame = frame,
                       title.size = 1)+
       tmap::tm_title(text = main)
-
-  print(suppressWarnings(p))
+    
+    print(suppressWarnings(p))
   }
   
   if (plot.type == 'timeseries'){
@@ -494,6 +496,8 @@ pa_plot.veg.index <- function(x,
                 main = main,
                 pch = pch)
   }
+  
+  
   
   
 }
@@ -523,7 +527,7 @@ pa_plot.rgb <- function(x,
     ),
     col_alpha = alpha,
     options = tmap:::opt_tm_rgb(interpolate = interpolate, ## the maintainer forgot to export this function
-                                                            ## will be exported in the next commit...
+                                ## will be exported in the next commit...
                                 saturation = saturation))+
     tmap::tm_title(text = main)
   
@@ -566,9 +570,9 @@ pa_plot.met <- function(x,
                         months = 1:12,
                         vars = c('maxt', 'mint', 'crain', 'cradn'),
                         tgt.year = 'last') {
-
-
-
+  
+  
+  
   req.namespaces <- c('ggplot2', 'patchwork')
   for (ns in req.namespaces) {
     if(!requireNamespace(ns, quietly = TRUE)){
@@ -576,53 +580,53 @@ pa_plot.met <- function(x,
       return(NULL)
     }
   }
-
+  
   weather.data <- x
   plot.type <- match.arg(plot.type)
-
+  
   if(!inherits(weather.data, 'met'))
     stop('weather.data must be a met object created with pa_get_weather_shp')
-
+  
   if(tgt.year != 'last' && (!is.numeric(tgt.year) || !any(grepl(tgt.year, weather.data$year))))
     stop('tgt.year has to be last or a year in the data set')
-
+  
   if(tgt.year != 'last'){crt.year <- tgt.year} else{ crt.year <- max(unique(weather.data$year))}
-
+  
   unit.system <- match.arg(unit.system)
   vars <- match.arg(vars, several.ok = TRUE)
   weather.data <- as.data.frame(weather.data)
   weather.data <- subset(weather.data, day >= start & day <= end)
   plt.units <- c('\u00B0C', '\u00B0C', 'MJ/m2', 'mm')
-
+  
   if(unit.system == 'standard'){
     weather.data <- .pa_convert_met_to_standard(weather.data)
     plt.units <- c('\u00B0F', '\u00B0F', 'MJ/m2', 'in')
-
+    
   }
-
-
+  
+  
   if (plot.type == 'climate_normals'){
-
+    
     weather.data$crain <- with(weather.data, stats::ave(rain, year, FUN = cumsum))
     weather.data$cradn <- with(weather.data, stats::ave(radn, year, FUN = cumsum))
     weather.summary <-  do.call(data.frame, stats::aggregate(weather.data[c('maxt', 'mint', 'radn', 'rain', 'crain', 'cradn')],
                                                              by = weather.data['day'],
                                                              function(x) c(mean = mean(x), sd = stats::sd(x), max = max(x), min = min(x))))
-
+    
     weather.summary$category <- 'historical'
     crt.weather <- subset(weather.data, year == crt.year)
     crt.weather$category <- crt.year
-
+    
     weather.summary$date <- as.Date(weather.summary$day, '%j', origin = as.Date('2019-12-31'))
     crt.weather$date <- as.Date(crt.weather$day, '%j', origin = as.Date('2019-12-31'))
-
-
+    
+    
     cmaps <- c('historical normal' = 'darkolivegreen3',
                'record maximum' = 'tomato1',
                'record minimum' = 'steelblue3',
                'current year' = 'navyblue')
     names(cmaps)[4] <- crt.year
-
+    
     plt.list <- list(
       maxt =  ggplot2::ggplot() +
         ggplot2::geom_ribbon(data = weather.summary, ggplot2::aes(x = date, ymin = .data[['maxt.mean']] - .data[['maxt.sd']], ymax = .data[['maxt.mean']] + .data[['maxt.sd']], fill =  names(cmaps)[1]), alpha = 0.5)+
@@ -630,28 +634,28 @@ pa_plot.met <- function(x,
         ggplot2::geom_line(data = weather.summary, ggplot2::aes(x = date, y = .data[['maxt.min']], col = names(cmaps)[3]))+
         ggplot2::geom_line(data = crt.weather, ggplot2::aes(x = date, y = .data[['maxt']], col = names(cmaps)[4])) +
         ggplot2::labs(y = paste0('Maximum\ntemperature, ', plt.units[1])),
-
+      
       mint = ggplot2::ggplot() +
         ggplot2::geom_ribbon(data = weather.summary, ggplot2::aes(x = date, ymin = .data[['mint.mean']] - .data[['mint.sd']], ymax = .data[['mint.mean']] + .data[['mint.sd']], fill =  names(cmaps)[1]), alpha = 0.5)+
         ggplot2::geom_line(data = weather.summary, ggplot2::aes(x = date, y = .data[['mint.max']], col = names(cmaps)[2]))+
         ggplot2::geom_line(data = weather.summary, ggplot2::aes(x = date, y = .data[['mint.min']], col = names(cmaps)[3]))+
         ggplot2::geom_line(data = crt.weather, ggplot2::aes(x = date, y = .data[['mint']], col = names(cmaps)[4])) +
         ggplot2::labs(y = paste0('Minimum\ntemperature, ', plt.units[2])),
-
+      
       cradn = ggplot2::ggplot() +
         ggplot2::geom_ribbon(data = weather.summary, ggplot2::aes(x = date, ymin = .data[['cradn.mean']] - .data[['cradn.sd']], ymax = .data[['cradn.mean']] + .data[['cradn.sd']], fill =  names(cmaps)[1]), alpha = 0.5)+
         ggplot2::geom_line(data = weather.summary, ggplot2::aes(x = date, y = .data[['cradn.max']], col = names(cmaps)[2]))+
         ggplot2::geom_line(data = weather.summary, ggplot2::aes(x = date, y = .data[['cradn.min']], col = names(cmaps)[3]))+
         ggplot2::geom_line(data = crt.weather, ggplot2::aes(x = date, y = .data[['cradn']], col = names(cmaps)[4])) +
         ggplot2::labs(y = paste0('Cumulative\nradiation, ', plt.units[3])),
-
+      
       crain =  ggplot2::ggplot()+
         ggplot2::geom_ribbon(data = weather.summary, ggplot2::aes(x = date, ymin = .data[['crain.mean']] - .data[['crain.sd']], ymax = .data[['crain.mean']] + .data[['crain.sd']], fill =  names(cmaps)[1]), alpha = 0.5)+
         ggplot2::geom_line(data = weather.summary, ggplot2::aes(x = date, y = .data[['crain.max']], col = names(cmaps)[2]))+
         ggplot2::geom_line(data = weather.summary, ggplot2::aes(x = date, y = .data[['crain.min']], col = names(cmaps)[3]))+
         ggplot2::geom_line(data = crt.weather, ggplot2::aes(x = date, y = .data[['crain']], col = names(cmaps)[4])) +
         ggplot2::labs(y = paste0('Cumulative\nrain, ', plt.units[4])) )
-
+    
     out <- patchwork::wrap_plots(plt.list[names(plt.list) %in% vars])+
       patchwork::plot_layout(ncol = 1, guides = 'collect') &
       ggplot2::scale_x_date(date_labels = '%b-%d')&
@@ -664,40 +668,40 @@ pa_plot.met <- function(x,
       ggplot2::labs(x = 'Date', col = '', fill = '')
     return(out)
   }
-
+  
   if (plot.type == 'monthly_distributions'){
-
+    
     year <- .data <- month <- day <- NULL
-
+    
     ## this plot assumes that the latest year in the data set is the current year
     crt.year <- max(unique(weather.data$year))
-
+    
     plt.units <- c('\u00B0C', '\u00B0C', 'MJ/m2', 'mm')
     if(unit.system == 'standard'){
       weather.data <- .pa_convert_met_to_standard(weather.data)
       plt.units <- c('\u00B0F', '\u00B0F', 'MJ/m2', 'in')
     }
-
+    
     weather.data$date <- as.Date(weather.data$day, '%j', origin = '2019-12-31')
     weather.data$month <- as.numeric(strftime(weather.data$date, '%m'))
     weather.data$month.abb <- factor(strftime(weather.data$date, '%b'),
                                      ordered = TRUE, levels = month.abb)
     weather.data <- subset(weather.data, month %in% months)
-
-
+    
+    
     cols.to.agg.by <- c('year', 'month', 'month.abb')
     weather.summary <- do.call(data.frame,
                                stats::aggregate(weather.data[c('maxt', 'mint', 'rain', 'radn')],
-                                         weather.data[cols.to.agg.by],
-                                         function(x) c(mean = mean(x), sum = sum(x))))
-
+                                                weather.data[cols.to.agg.by],
+                                                function(x) c(mean = mean(x), sum = sum(x))))
+    
     crt.weather <- subset(weather.data, year == crt.year)
     crt.weather <- do.call(data.frame,
                            stats::aggregate(crt.weather[c( 'maxt', 'mint', 'rain', 'radn')],
-                                     crt.weather[cols.to.agg.by],
-                                     function(x) c(mean = mean(x), sum = sum(x))))
-
-
+                                            crt.weather[cols.to.agg.by],
+                                            function(x) c(mean = mean(x), sum = sum(x))))
+    
+    
     cmaps <- c('maximum temperature' = 'tomato1',
                'minimum temperature' = 'steelblue3',
                'current year' = 'navyblue',
@@ -705,10 +709,10 @@ pa_plot.met <- function(x,
                'cumulative radiation' = 'orange',
                'historical mean' = 'black')
     names(cmaps)[3] <- crt.year
-
-
+    
+    
     plt.list <- list(
-
+      
       maxt = ggplot2::ggplot()+
         ggplot2::geom_density(data = weather.summary, ggplot2::aes( x = .data[['maxt.mean']], fill = names(cmaps)[1]), alpha = 0.5)+
         ggplot2::geom_vline(data = crt.weather, ggplot2::aes( xintercept = .data[['maxt.mean']], col = names(cmaps)[3]), linetype = 2)+
@@ -720,7 +724,7 @@ pa_plot.met <- function(x,
         ggplot2::theme(strip.background = ggplot2::element_blank(),
                        strip.text = ggplot2::element_blank())+
         ggplot2::facet_wrap(~month.abb,  ncol = 1,  strip.position = 'right'),
-
+      
       mint = ggplot2::ggplot()+
         ggplot2::geom_density(data = weather.summary, ggplot2::aes( x = .data[['mint.mean']], fill = names(cmaps)[2]), alpha = 0.5)+
         ggplot2::geom_vline(data = crt.weather, ggplot2::aes( xintercept = .data[['mint.mean']], col = names(cmaps)[3]), linetype = 2)+
@@ -732,7 +736,7 @@ pa_plot.met <- function(x,
         ggplot2::theme(strip.background = ggplot2::element_blank(),
                        strip.text = ggplot2::element_blank())+
         ggplot2::facet_wrap(~month.abb,  ncol = 1,  strip.position = 'right'),
-
+      
       cradn = ggplot2::ggplot()+
         ggplot2::geom_density(data = weather.summary, ggplot2::aes( x = .data[['radn.sum']], fill = names(cmaps)[5]), alpha = 0.5)+
         ggplot2::geom_vline(data = crt.weather, ggplot2::aes( xintercept = .data[['radn.sum']], col = names(cmaps)[3]), linetype = 2)+
@@ -744,7 +748,7 @@ pa_plot.met <- function(x,
         ggplot2::theme(strip.background = ggplot2::element_blank(),
                        strip.text = ggplot2::element_blank())+
         ggplot2::facet_wrap(~month.abb,  ncol = 1,  strip.position = 'right'),
-
+      
       crain = ggplot2::ggplot()+
         ggplot2::geom_density(data = weather.summary, ggplot2::aes( x = .data[['rain.sum']], fill = names(cmaps)[4]), alpha = 0.5)+
         ggplot2::geom_vline(data = crt.weather, ggplot2::aes( xintercept = .data[['rain.sum']], col = names(cmaps)[3]), linetype = 2)+
@@ -757,13 +761,13 @@ pa_plot.met <- function(x,
                        strip.text = ggplot2::element_blank())+
         ggplot2::facet_wrap(~month.abb,  ncol = 1,  strip.position = 'right')
     )
-
+    
     plt.list <- plt.list[names(plt.list) %in% vars]
-
+    
     plt.list[[length(plt.list)]] <- plt.list[[length(plt.list)]] +
       ggplot2::theme(strip.background = ggplot2::element_rect(fill = 'transparent', colour = 'transparent'),
                      strip.text = ggplot2::element_text())
-
+    
     out <- patchwork::wrap_plots(plt.list)+
       patchwork::plot_layout(guides = 'collect', nrow = 1) &
       ggplot2::theme(panel.spacing = ggplot2::unit(0, 'line'),
@@ -775,7 +779,7 @@ pa_plot.met <- function(x,
                      axis.title.y = ggplot2::element_blank(),
                      axis.ticks.y = ggplot2::element_blank())
     return(out)
-
+    
   }
-
+  
 }
