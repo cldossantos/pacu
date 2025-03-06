@@ -1,3 +1,10 @@
+## 2025-03-06 
+
+- Version 0.1.53
+
+- pa_cardinal_dates is working well. I am still trying to decide which 
+arguments the function will have.
+
 ## 2025-03-04
 
 - Version 0.1.52

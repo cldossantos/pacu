@@ -3,6 +3,8 @@
 S3method(base::summary,dslist)
 S3method(base::summary,veg.index)
 S3method(base::summary,yield)
+S3method(pa_cardinal_dates,Date)
+S3method(pa_cardinal_dates,numeric)
 S3method(pa_cardinal_dates,veg.index)
 S3method(pa_plot,met)
 S3method(pa_plot,rgb)

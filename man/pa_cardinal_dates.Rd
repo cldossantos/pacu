@@ -2,13 +2,38 @@
 % Please edit documentation in R/cardinal_dates.R
 \name{pa_cardinal_dates}
 \alias{pa_cardinal_dates}
-\alias{pa_cardinal_dates.vector}
+\alias{pa_cardinal_dates.numeric}
+\alias{pa_cardinal_dates.Date}
 \alias{pa_cardinal_dates.veg.index}
 \title{Predict cardinal dates from satellite image data}
 \usage{
 pa_cardinal_dates(x, ...)
 
-\method{pa_cardinal_dates}{vector}(
+\method{pa_cardinal_dates}{numeric}(
+  x,
+  y,
+  baseline.months = c(1:3, 12),
+  model = c("none", "card3", "scard3", "agauss", "harmonic"),
+  index = c("none", "ndvi", "gcvi", "evi"),
+  prior.means,
+  prior.vars,
+  bias.correction,
+  ...
+)
+
+\method{pa_cardinal_dates}{Date}(
+  x,
+  y,
+  baseline.months = c(1:3, 12),
+  model = c("none", "card3", "scard3", "agauss", "harmonic"),
+  index = c("none", "ndvi", "gcvi", "evi"),
+  prior.means,
+  prior.vars,
+  bias.correction,
+  ...
+)
+
+\method{pa_cardinal_dates}{veg.index}(
   x,
   y = NULL,
   baseline.months = c(1:3, 12),
@@ -16,16 +41,15 @@ pa_cardinal_dates(x, ...)
   index = c("none", "ndvi", "gcvi", "evi"),
   prior.means,
   prior.vars,
-  bias.correction
+  bias.correction,
+  ...
 )
-
-\method{pa_cardinal_dates}{veg.index}(x, ...)
 }
 \arguments{
 \item{x}{vector containing the date or day of the year of that
 the satellite data was collected}
 
-\item{...}{additional arguments}
+\item{...}{ignored}
 
 \item{y}{vector containing the satellite data value}
 
