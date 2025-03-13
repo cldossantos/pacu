@@ -1,3 +1,11 @@
+## 2025-03-06
+
+-Version 0.1.54
+
+- Small bug in pa_yield. When algorithm is ritas and smooth
+method was none, the function would not aggregate the data to 
+the grid. That is solved now.
+
 ## 2025-03-06 
 
 - Version 0.1.53

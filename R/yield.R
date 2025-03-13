@@ -208,10 +208,23 @@ pa_yield <- function(input,
   }
   
   
+  if (is.null(formula)) {
+    form <- formula(z ~ 1)
+  }else{
+    form <- formula(formula)
+  }
   
+  if(!is.null(formula) && smooth.method != 'krige') {
+    stop('formula should only be used when smooth.method = krige')
+  }
+  
+  
+
+  trial.vars <- NULL
   if(!is.null(grid)){
     
     if (inherits(grid, 'trial')){
+      trial.vars <- attr(grid$trial, 'resp')
       grid <- grid[['trial']]
     }
     
@@ -234,21 +247,9 @@ pa_yield <- function(input,
     
   }
   
-  
-  if (is.null(formula)) {
-    form <- formula(z ~ 1)
-  }else{
-    form <- formula(formula)
-  }
-  
-  
-  if(!is.null(formula) && smooth.method != 'krige') {
-    stop('formula should only be used when smooth.method = krige')
-  }
-  
-  
   exp.vars <-  all.vars(form)
   exp.vars <- exp.vars[exp.vars != 'z']
+  exp.vars <- unique(c(exp.vars, trial.vars))
   
   if (length(exp.vars) > 0) {
     if (is.null(grid))
@@ -257,6 +258,9 @@ pa_yield <- function(input,
     if (!all(exp.vars %in% names(grid)))
       stop('One or more of the explanatory variables are not present in the grid.')
   }
+
+  
+
   
   
   if (!is.null(grid) && !is.null(boundary)) {
@@ -480,7 +484,6 @@ pa_yield <- function(input,
     sbs[[length(sbs) + 1]] <- sf::st_geometry(adj.pols)
     
     if(remove.crossed.polygons) {
-      
       if(is.null(grid)){
         stop('when remove.crossed.polygons is true, grid needs to be supplied')
       }
@@ -523,8 +526,9 @@ pa_yield <- function(input,
   
   if (!is.null(grid)){
     app.pols <- suppressWarnings(sf::st_join(app.pols, grid, join = sf::st_intersects, left = TRUE, largest = TRUE))
+  }else{
+    grid <- sf::st_as_sf(st_geometry(app.pols))
   }
-  
   
   
   if(pb)
@@ -596,6 +600,16 @@ pa_yield <- function(input,
   }
   if (smooth.method == 'none'){
     preds <- app.pols['mass']
+    if (!identical(sf::st_geometry(preds),
+                   sf::st_geometry(grid))){
+      preds <- .pa_areal_weighted_average(preds, 
+                                          grid, 
+                                          'mass',
+                                          sf::st_intersects,
+                                          cores = cores)
+      preds <- rev(preds)
+    }
+
     preds <- stats::na.omit(preds)
     preds[['mass']] <- .pa_moisture(preds[['mass']], 0, moisture.adj, verbose)
     preds[['mass']] <- .pa_unit_system(preds[['mass']], unit.system, lbs.per.bushel)
