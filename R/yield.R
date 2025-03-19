@@ -536,7 +536,7 @@ pa_yield <- function(input,
   
   if (smooth.method == 'krige'){
     app.pols$mass <- .pa_moisture(app.pols$mass, 0, moisture.adj, verbose)
-    app.pols$mass[app.pols$mass == 0] <- 1e-3
+    app.pols$mass[app.pols$mass == 0] <- 1e-6
     app.pols$z <- app.pols$mass
     app.pols <- cbind(app.pols, suppressWarnings(sf::st_coordinates(sf::st_centroid(app.pols))))
     app.pols <- stats::na.omit(app.pols)

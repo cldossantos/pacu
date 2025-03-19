@@ -18,7 +18,6 @@ pa_cardinal_dates <- function(x, ...) {
 #' @param baseline.months vector containing the months used as a baseline reference for 
 #' when there are no crops in the field. For example, c(1:3, 12) represent Jan, Feb, Mar, and Dec.
 #' @param model a string naming the model to be used to estimate cardinal dates
-#' @param index vegetation index supplied to x
 #' @param prior.means a vector of length three containing the prior means for cardinal dates
 #' @export
 #' @param prior.vars a vector of length three containing the prior variances for cardinal dates
@@ -33,7 +32,6 @@ pa_cardinal_dates <- function(x, ...) {
 #'   x = x,
 #'   y = y,
 #'   model = 'scard3',
-#'   index = 'ndvi',
 #'   prior.means = c(130, 190, 297),
 #'   prior.vars = c(11, 13, 18),
 #'   bias.correction = c(10, 10, 10)
@@ -44,7 +42,6 @@ pa_cardinal_dates.numeric <- function(x,
                                       y,
                                       baseline.months = c(1:3, 12),
                                       model = c('none', "card3", "scard3", "agauss", "harmonic"),
-                                      index = c('none', "ndvi", "gcvi", "evi"),
                                       prior.means,
                                       prior.vars,
                                       bias.correction,
@@ -52,7 +49,6 @@ pa_cardinal_dates.numeric <- function(x,
   
   
   model <- match.arg(model)
-  index <- match.arg(index)
   
   if (length(x) != length(y))
     stop('Length of x and y must be the same')
@@ -60,8 +56,6 @@ pa_cardinal_dates.numeric <- function(x,
   if (model == 'none')
     stop('Please choose a model')
   
-  if (index == 'none')
-    stop('Please choose an index')
   
   if (!inherits(x, c("integer", "numeric", "Date"))) {
     stop("x must be of class numeric or Date")
@@ -118,7 +112,6 @@ pa_cardinal_dates.Date <- function(x,
                                    y,
                                    baseline.months = c(1:3, 12),
                                    model = c('none', "card3", "scard3", "agauss", "harmonic"),
-                                   index = c('none', "ndvi", "gcvi", "evi"),
                                    prior.means,
                                    prior.vars,
                                    bias.correction,
@@ -127,7 +120,7 @@ pa_cardinal_dates.Date <- function(x,
   pa_cardinal_dates(x = x, 
                     y = y, 
                     baseline.months = baseline.months,
-                    model = model, index = index,
+                    model = model, 
                     prior.means = prior.means, 
                     prior.vars = prior.vars,
                     bias.correction = bias.correction)
@@ -143,7 +136,6 @@ pa_cardinal_dates.veg.index <- function(x,
                                         y = NULL,
                                         baseline.months = c(1:3, 12),
                                         model = c('none', "card3", "scard3", "agauss", "harmonic"),
-                                        index = c('none', "ndvi", "gcvi", "evi"),
                                         prior.means,
                                         prior.vars,
                                         bias.correction,
@@ -178,7 +170,6 @@ pa_cardinal_dates.veg.index <- function(x,
                                 y = y,
                                 baseline.months = baseline.months,
                                 model = model,
-                                index = index,
                                 prior.means = prior.means,
                                 prior.vars = prior.vars,
                                 bias.correction = bias.correction

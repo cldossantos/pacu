@@ -4,12 +4,21 @@
 \alias{pacu_options}
 \title{Setting some options for the package}
 \usage{
-pacu_options(suppress.warnings = FALSE, suppress.messages = FALSE)
+pacu_options(
+  suppress.warnings = FALSE,
+  suppress.messages = FALSE,
+  apportion.size.multiplier = 1
+)
 }
 \arguments{
 \item{suppress.warnings}{whether to suppress warning messages}
 
 \item{suppress.messages}{whether to suppress  messages}
+
+\item{apportion.size.multiplier}{a multiplier used to determine the size of the
+apportioning polygons in the RITAS algorithm. A value of sqrt(2) will make polygons
+approximately the same size as the harvest polygons. Smaller values increase the resolution
+but also increase the computation time substantially.}
 }
 \value{
 as a side effect it modifies the \sQuote{pacu.options} environment.
@@ -23,7 +32,7 @@ Set pacu options
 \examples{
 \dontrun{
 names(pacu.options)
-pacu_options(exe.path = "some-new-path-to-executable")
-pacu.options$exe.path
+pacu_options(suppress.warnings = FALSE)
+pacu.options$suppress.warnings
 }
 }

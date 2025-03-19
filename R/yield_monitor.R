@@ -193,16 +193,18 @@ pa_apportion_mass <- function(polygons,
                               cores = 1L,
                               verbose = FALSE){
 
+  apportion.size.multiplier = get("apportion.size.multiplier", envir = pacu.options)
 
   if(is.null(cell.size)){
     cell.size <-  sqrt(stats::median(sf::st_area(polygons)))
+    cell.size <- apportion.size.multiplier * cell.size
     cell.size <- as.numeric(cell.size)
   }
 
   dat <- sf::st_as_sf(polygons)
   dat$mass <- mass.vector
   app.grid <- sf::st_make_grid(polygons, cellsize = rep(cell.size, 2))
-  if(verbose) cat('Apportioning yield to', length(app.grid), 'polygons.\n')
+  if(verbose) cat('Apportioning variable to', length(app.grid), 'polygons.\n')
   apported <- .pa_areal_weighted_average(dat, app.grid, 'mass', sf::st_intersects, sum, cores)
 
   if(remove.empty.cells)

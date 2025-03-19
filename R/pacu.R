@@ -5,20 +5,26 @@
 #' @description Set settings regarding messages and default behaviors of the package
 #' @param suppress.warnings whether to suppress warning messages
 #' @param suppress.messages whether to suppress  messages
+#' @param apportion.size.multiplier a multiplier used to determine the size of the
+#' apportioning polygons in the RITAS algorithm. A value of sqrt(2) will make polygons
+#' approximately the same size as the harvest polygons. Smaller values increase the resolution
+#' but also increase the computation time substantially. 
 #' @return as a side effect it modifies the \sQuote{pacu.options} environment.
 #' @export
 #' @examples
 #'\dontrun{
 #' names(pacu.options)
-#' pacu_options(exe.path = "some-new-path-to-executable")
-#' pacu.options$exe.path
+#' pacu_options(suppress.warnings = FALSE)
+#' pacu.options$suppress.warnings
 #' }
 
 pacu_options <- function(suppress.warnings = FALSE, 
-                         suppress.messages = FALSE){
+                         suppress.messages = FALSE,
+                         apportion.size.multiplier = 1){
 
   assign('suppress.warnings', suppress.warnings, pacu.options)
   assign('suppress.messages', suppress.messages, pacu.options)
+  assign('apportion.size.multiplier', apportion.size.multiplier, pacu.options)
 }
 
 #' Environment which stores PACU options
@@ -42,6 +48,7 @@ pacu_options <- function(suppress.warnings = FALSE,
 pacu.options <- new.env(parent = emptyenv())
 assign('suppress.warnings', FALSE, pacu.options)
 assign('suppress.messages', FALSE, pacu.options)
+assign('apportion.size.multiplier', 1, pacu.options)
 assign('.run.local.tests', TRUE, pacu.options)
 assign('.run.experimental.tests', FALSE, pacu.options)
 

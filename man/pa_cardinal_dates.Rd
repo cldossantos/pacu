@@ -14,7 +14,6 @@ pa_cardinal_dates(x, ...)
   y,
   baseline.months = c(1:3, 12),
   model = c("none", "card3", "scard3", "agauss", "harmonic"),
-  index = c("none", "ndvi", "gcvi", "evi"),
   prior.means,
   prior.vars,
   bias.correction,
@@ -26,7 +25,6 @@ pa_cardinal_dates(x, ...)
   y,
   baseline.months = c(1:3, 12),
   model = c("none", "card3", "scard3", "agauss", "harmonic"),
-  index = c("none", "ndvi", "gcvi", "evi"),
   prior.means,
   prior.vars,
   bias.correction,
@@ -38,7 +36,6 @@ pa_cardinal_dates(x, ...)
   y = NULL,
   baseline.months = c(1:3, 12),
   model = c("none", "card3", "scard3", "agauss", "harmonic"),
-  index = c("none", "ndvi", "gcvi", "evi"),
   prior.means,
   prior.vars,
   bias.correction,
@@ -57,8 +54,6 @@ the satellite data was collected}
 when there are no crops in the field. For example, c(1:3, 12) represent Jan, Feb, Mar, and Dec.}
 
 \item{model}{a string naming the model to be used to estimate cardinal dates}
-
-\item{index}{vegetation index supplied to x}
 
 \item{prior.means}{a vector of length three containing the prior means for cardinal dates}
 
@@ -82,7 +77,6 @@ pa_cardinal_dates.vector(
   x = x,
   y = y,
   model = 'scard3',
-  index = 'ndvi',
   prior.means = c(130, 190, 297),
   prior.vars = c(11, 13, 18),
   bias.correction = c(10, 10, 10)

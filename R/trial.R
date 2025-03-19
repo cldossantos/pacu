@@ -60,6 +60,8 @@ pa_trial <- function(input,
                      algorithm = c('none', 'simple', 'ritas'),
                      var.label = 'as.applied',
                      boundary = NULL,
+                     smooth.method = c('none', 'krige', 'idw'),
+                     formula = NULL,
                      clean = FALSE,
                      clean.sd = 3,
                      clean.edge.distance = 0,
@@ -74,6 +76,7 @@ pa_trial <- function(input,
 
   algorithm <- match.arg(algorithm)
   pb <- ifelse(verbose == 1, TRUE, FALSE)
+  smooth.method <- match.arg(smooth.method)
   verbose <- ifelse(verbose > 1, 1, 0)
 
   s.wrns <-  get("suppress.warnings", envir = pacu.options)
@@ -108,29 +111,59 @@ pa_trial <- function(input,
       boundary <- sf::st_transform(boundary, sf::st_crs(input))
     }
   }
-
-
-
+  
+  
+  if (is.null(formula)) {
+    form <- formula(z ~ 1)
+  }else{
+    form <- formula(formula)
+  }
+  
+  if(!is.null(formula) && smooth.method != 'krige') {
+    stop('formula should only be used when smooth.method = krige')
+  }
+  
+  
+  
+  trial.vars <- NULL
   if(!is.null(grid)){
-
+    
+    if (inherits(grid, 'trial')){
+      trial.vars <- attr(grid$trial, 'resp')
+      grid <- grid[['trial']]
+    }
+    
     if (!inherits(grid, 'sf')) {
       grid <- sf::st_as_sf(grid)
     }
-
+    
     if(is.na(sf::st_crs(grid))) {
       if (verbose) cat("No CRS found for grid. Defaulting to EPSG:4326 \n")
       sf::st_crs(grid) <- 'epsg:4326'
     }
-
+    
     if (sf::st_crs(grid) != sf::st_crs(input)) {
       grid <- sf::st_transform(grid, sf::st_crs(input))
     }
-
+    
     if (!all(c('X', 'Y') %in% names(grid))) {
       grid <- cbind(grid, suppressWarnings(sf::st_coordinates(sf::st_centroid(grid))))
     }
-
+    
   }
+  
+  exp.vars <-  all.vars(form)
+  exp.vars <- exp.vars[exp.vars != 'z']
+  exp.vars <- unique(c(exp.vars, trial.vars))
+  
+  if (length(exp.vars) > 0) {
+    if (is.null(grid))
+      stop('When formula contains explanatory variables, grid must be supplied.')
+    
+    if (!all(exp.vars %in% names(grid)))
+      stop('One or more of the explanatory variables are not present in the grid.')
+  }
+
 
 
   if (algorithm == 'simple') {
@@ -310,30 +343,106 @@ pa_trial <- function(input,
     utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
 
 
+  if (smooth.method == 'krige'){
+    app.pols$mass[app.pols$mass == 0] <- 1e-6
+    app.pols$z <- app.pols$mass
+    app.pols <- cbind(app.pols, suppressWarnings(sf::st_coordinates(sf::st_centroid(app.pols))))
+    app.pols <- stats::na.omit(app.pols)
+    preds <- .pa_predict(formula = form,
+                         smooth.method = smooth.method,
+                         df = app.pols,
+                         new.df = grid,
+                         cores = cores,
+                         fun = 'none',
+                         verbose = verbose,
+                         ...)
+    
+    variogram.model <- preds[[2]]
+    variogram <- preds[[3]]
+    preds <- preds[[1]]
+    predicted.var <- data.frame(preds$var1.pred, preds$var1.var)
+    names(predicted.var) <- c(var.label, paste0(var.label,'.var'))
+    predicted.var[[1]] <- predicted.var[[1]] * conversion.factor
+    predicted.var[[2]] <- predicted.var[[2]] * (conversion.factor**2)
+    preds <- cbind(preds, predicted.var)
+    preds <- preds[c(var.label,  paste0(var.label,'.var'), 'geometry')]
+    sf::st_geometry(preds) <- 'geometry'
+    
+    if (!is.null(grid)){
+      if(length(exp.vars) > 0)
+        preds <- cbind(preds, as.data.frame(grid)[exp.vars])
+    }
+    
+    
+  }
+  
+  if (smooth.method == 'idw'){
 
+    if (form != formula(z ~ 1)){
+      stop('The IDW smoothing method does not allow for predictors in the formula. The "formula" argument should be: z ~ 1')
+    }
+    
+    app.pols$z <- app.pols$mass
+    app.pols <- subset(app.pols, !is.na(mass))
+    preds <- .pa_predict(formula = form,
+                         smooth.method = smooth.method,
+                         df = app.pols,
+                         new.df = grid,
+                         cores = cores,
+                         verbose = verbose,
+                         ...)
+    
+    variogram.model <- NULL
+    variogram <- NULL
+    preds <- preds[[1]]
+    
+    
+    predicted.var <- data.frame(preds$var1.pred)
+    names(predicted.var) <- var.label
+    predicted.var[[1]] <- predicted.var[[1]] * conversion.factor
+    preds <- cbind(preds, predicted.var)
+    preds <- preds[c(var.label, 'geometry')]
+    sf::st_geometry(preds) <- 'geometry'
+    
+  }
+  
+  if (smooth.method == 'none'){
     preds <- app.pols['mass']
     preds <- stats::na.omit(preds)
+     if (!identical(sf::st_geometry(preds),
+                   sf::st_geometry(grid))){
+      preds <- .pa_areal_weighted_average(x = preds, 
+                                          y = grid, 
+                                          var = 'mass',
+                                          fn = sf::st_intersects,
+                                          sum = FALSE,
+                                          cores = cores)
+      preds <- rev(preds)
+    }
+    
+    preds <- stats::na.omit(preds)
+    preds[[1]] <- preds[[1]] * conversion.factor
     names(preds) <- c(var.label, 'geometry')
     sf::st_geometry(preds) <- 'geometry'
     preds <- preds[c(var.label, 'geometry')]
-
-    preds <- .pa_areal_weighted_average(preds,
-                                        sf::st_geometry(grid),
-                                        var = var.label,
-                                        fn = sf::st_intersects,
-                                        sum = FALSE,
-                                        cores = cores)
-
-    preds[[var.label]] <- preds[[var.label]] * conversion.factor
+    variogram.model <- NULL
+    variogram <- NULL
     
+  }
+
   if(pb)
     utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
 
   attr(preds, 'units') <- out.units
   attr(preds, 'algorithm') <- algorithm
   attr(preds, 'resp') <- var.label
+  attr(preds, 'smooth.method') <- smooth.method
+  attr(preds, 'formula') <- form
 
-  res <- list(trial = preds)
+  res <- list(trial = preds,
+              variogram = variogram,
+              variogram.model = variogram.model,
+              steps = NULL)
 
   if(pb)
     utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
