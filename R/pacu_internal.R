@@ -890,6 +890,8 @@
 .pa_areal_weighted_average <- function(x, y, var, fn, sum = FALSE, cores = 1L){
   s.wrns <-  get("suppress.warnings", envir = pacu.options)
   s.msgs <-  get("suppress.messages", envir = pacu.options)
+  
+  min.cov <- 0.25
   pol.intersections <- fn(y, x)
   int.ps <- (1:length(y))[lengths(pol.intersections) >= 1]
   y <- sf::st_geometry(y)
@@ -908,7 +910,7 @@
       ncores <- cores.avlb
     }
     cl <- parallel::makeCluster(ncores)
-    parallel::clusterExport(cl, c('y', 'pol.list', 'var', 'sum'), environment())
+    parallel::clusterExport(cl, c('y', 'pol.list', 'var', 'sum', 'min.cov'), environment())
     parallel::clusterEvalQ(cl, {library('sf')})
     avs <- parallel::parLapply(cl,
                                1:length(pol.list),
@@ -917,7 +919,7 @@
                                  ol.pols <- suppressWarnings(sf::st_intersection(ol.pols, sf::st_buffer(y[i, ], 0)))
                                  ol.pols$area <- as.numeric(sf::st_area(ol.pols))
                                  cov.frac <- sum(ol.pols$area)/ as.numeric(sf::st_area(sf::st_buffer(y[i, ], 0)))
-                                 if (cov.frac < 0.25) { return(NULL)}
+                                 if (cov.frac < min.cov) { return(NULL)}
                                  if(sum) {
                                    wv <- as.numeric(sf::st_area(ol.pols)) * ol.pols[[var]]
                                    wv <- sum(wv)
@@ -938,7 +940,7 @@
                     ol.pols <- suppressWarnings(sf::st_intersection(ol.pols, sf::st_buffer(y[i, ], 0)))
                     ol.pols$area <- as.numeric(sf::st_area(ol.pols))
                     cov.frac <- sum(ol.pols$area)/ as.numeric(sf::st_area(sf::st_buffer(y[i, ], 0)))
-                    if (cov.frac < 0.25) { return(NULL)}
+                    if (cov.frac < min.cov) { return(NULL)}
 
                     if(sum) {
                       wv <- as.numeric(sf::st_area(ol.pols)) * ol.pols[[var]]
