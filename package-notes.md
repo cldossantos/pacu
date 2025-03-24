@@ -1,3 +1,12 @@
+## 2025-03-24
+
+- Version 0.1.56
+
+- added the elipsis argument to ".pa_fit_variogram". This is meant to 
+speed up the variogram fitting process, which was taking a very long time in 
+big fields.
+
+
 ## 2025-03-06
 
 -Version 0.1.54
