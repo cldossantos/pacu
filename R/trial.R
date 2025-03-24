@@ -78,6 +78,7 @@ pa_trial <- function(input,
   pb <- ifelse(verbose == 1, TRUE, FALSE)
   smooth.method <- match.arg(smooth.method)
   verbose <- ifelse(verbose > 1, 1, 0)
+  mass <- NA
 
   s.wrns <-  get("suppress.warnings", envir = pacu.options)
   s.msgs <-  get("suppress.messages", envir = pacu.options)

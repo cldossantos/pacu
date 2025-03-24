@@ -1076,11 +1076,12 @@
 #' @param df an sf object containg the variables specified in the formular
 #' @param robust whether to use Cressie's robust estimator
 #' @param test.variogram logical, whether to test if the variogram results in valid predictions
+#' @param ... additional parameters passed to the kriging function
 #' @details This function will fit and return a Mattern variogram given a formula and a sf object
 #' @return returns an sf object
 #' @noRd
 
-.pa_fit_variogram <- function(formula, df, robust = TRUE, fun, test.variogram = TRUE, verbose = FALSE) {
+.pa_fit_variogram <- function(formula, df, robust = TRUE, fun, test.variogram = TRUE, verbose = FALSE, ...) {
   if(verbose) cat('Fitting variogram \n')
   
   if(fun == 'log') {
@@ -1119,14 +1120,15 @@
   
   if (test.variogram){
     test.df.size <- nrow(df) %/% 20
-    test.df <- df[1:test.df.size, ]
+    test.df <- df[test.df.size, ]
     for (i in 1:length(variogram.list)){
       f1 <- variogram.list[[i]]
       test.pred <- gstat::krige(formula,
                                 df,
                                 test.df,
                                 f1,
-                                debug.level = 0)
+                                debug.level = 0,
+                                ...)
       if (!all(is.na(test.pred$var1.pred))){
         break
       }
@@ -1185,7 +1187,8 @@
                                robust = TRUE,
                                fun = fun,
                                test.variogram = TRUE, 
-                               verbose = verbose)
+                               verbose = verbose,
+                               ...)
     vari <- model[[2]]
     model <- model[[1]]
 
