@@ -1,3 +1,10 @@
+## 2025-04-03
+
+- Version 0.1.57
+
+- added some buffering to avoid unecessary topological operations
+when checking polygons overlap.
+
 ## 2025-03-24
 
 - Version 0.1.56

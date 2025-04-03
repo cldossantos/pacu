@@ -973,8 +973,8 @@
   
   s.wrns <-  get("suppress.warnings", envir = pacu.options)
   s.msgs <-  get("suppress.messages", envir = pacu.options)
-  
-  pol.intersections <- sf::st_intersects(polygons, remove_self = FALSE)
+  buffered.polygons <- sf::st_buffer(polygons, -0.01) ## adding some tolerance
+  pol.intersections <- sf::st_intersects(buffered.polygons, remove_self = FALSE)
   number.of.conflicts <- sum(as.numeric(lengths(pol.intersections)  > 1))
 
   if(verbose){cat('Solving polygon boundaries of', number.of.conflicts, 'overlapping polygons in', cores, 'core(s)','\n')}
@@ -1885,6 +1885,31 @@
   mass <- .pa_moisture(mass, moisture, 0)
   mass
 }
+
+
+
+#'
+#' @title Calculate the length and width of rectangular experimental units
+#' @description Calculate the length and width of rectangular experimental units
+#' @name .pa_eu_dimentions
+#' @param x an experimental unit geometry
+#' @details This function will calculate the plot length and with of a rectangular geometry
+#' @return returns a vector containing width and length in meters
+#' @author Caio dos Santos and Fernando Miguez
+#' @noRd
+#'
+.pa_eu_dimensions <- function(x){
+  
+  area <- sf::st_area(x)
+  perimeter <- sf::st_perimeter(x)
+  
+  l = (perimeter + sqrt((perimeter ^ 2) - (16 * area))) / 4
+  w = (perimeter - (2*l))/2
+  res <- c(w,l)
+  names(res) <- c('width', 'length')
+  return(res)
+}
+
 #'
 #' @title Retrieve the kriging weights from the kriging process
 #' @description Retrieve the kriging weights from the kriging process
