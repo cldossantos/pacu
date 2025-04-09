@@ -9,6 +9,8 @@
 #' apportioning polygons in the RITAS algorithm. A value of sqrt(2) will make polygons
 #' approximately the same size as the harvest polygons. Smaller values increase the resolution
 #' but also increase the computation time substantially. 
+#' @param minimum.coverage.fraction The minimum area of an apportioning polygon that needs to be covered
+#' to conduct the apportioning operation. 
 #' @return as a side effect it modifies the \sQuote{pacu.options} environment.
 #' @export
 #' @examples
@@ -20,11 +22,13 @@
 
 pacu_options <- function(suppress.warnings = FALSE, 
                          suppress.messages = FALSE,
-                         apportion.size.multiplier = 1){
+                         apportion.size.multiplier = 1,
+                         minimum.coverage.fraction = 0.5){
 
   assign('suppress.warnings', suppress.warnings, pacu.options)
   assign('suppress.messages', suppress.messages, pacu.options)
   assign('apportion.size.multiplier', apportion.size.multiplier, pacu.options)
+  assign('minimum.coverage.fraction', minimum.coverage.fraction, pacu.options)
 }
 
 #' Environment which stores PACU options
@@ -51,6 +55,7 @@ assign('suppress.messages', FALSE, pacu.options)
 assign('apportion.size.multiplier', 1, pacu.options)
 assign('.run.local.tests', TRUE, pacu.options)
 assign('.run.experimental.tests', FALSE, pacu.options)
+assign('minimum.coverage.fraction', 0.50, pacu.options)
 
 
 ## Import packages needed for pacu to work correctly

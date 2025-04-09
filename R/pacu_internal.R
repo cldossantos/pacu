@@ -890,8 +890,7 @@
 .pa_areal_weighted_average <- function(x, y, var, fn, sum = FALSE, cores = 1L){
   s.wrns <-  get("suppress.warnings", envir = pacu.options)
   s.msgs <-  get("suppress.messages", envir = pacu.options)
-  
-  min.cov <- 0.25
+  min.cov <- get("minimum.coverage.fraction", envir = pacu.options)
   pol.intersections <- fn(y, x)
   int.ps <- (1:length(y))[lengths(pol.intersections) >= 1]
   y <- sf::st_geometry(y)

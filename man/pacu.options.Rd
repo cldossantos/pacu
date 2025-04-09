@@ -5,7 +5,7 @@
 \alias{pacu.options}
 \title{Environment which stores PACU options}
 \format{
-An object of class \code{environment} of length 5.
+An object of class \code{environment} of length 6.
 }
 \usage{
 pacu.options

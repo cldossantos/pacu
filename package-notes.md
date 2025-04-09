@@ -1,8 +1,17 @@
+
+## 2025-04-09
+
+- Version 0.1.58
+
+- Added an option to control the minimum coverage fraction in the 
+apportioning of polygons. This aims to avoid that values coming from
+small polygons be apportioned to greater polygons.
+
 ## 2025-04-03
 
 - Version 0.1.57
 
-- added some buffering to avoid unecessary topological operations
+- added some buffering to avoid unnecessary topological operations
 when checking polygons overlap.
 
 ## 2025-03-24

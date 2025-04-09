@@ -7,7 +7,8 @@
 pacu_options(
   suppress.warnings = FALSE,
   suppress.messages = FALSE,
-  apportion.size.multiplier = 1
+  apportion.size.multiplier = 1,
+  minimum.coverage.fraction = 0.5
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ pacu_options(
 apportioning polygons in the RITAS algorithm. A value of sqrt(2) will make polygons
 approximately the same size as the harvest polygons. Smaller values increase the resolution
 but also increase the computation time substantially.}
+
+\item{minimum.coverage.fraction}{The minimum area of an apportioning polygon that needs to be covered
+to conduct the apportioning operation.}
 }
 \value{
 as a side effect it modifies the \sQuote{pacu.options} environment.
