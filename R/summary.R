@@ -10,8 +10,8 @@
 summary.dslist <- function(object, ...){
 
   x <- object
-  x$Year <- as.numeric(strftime(as.POSIXct(x$OriginDate), '%Y'))
-  x$Month <- strftime(as.POSIXct(x$OriginDate), '%m')
+  x$Year <- as.numeric(strftime(as.POSIXct(x$ContentDate[[1]]), '%Y'))
+  x$Month <- strftime(as.POSIXct(x$ContentDate[[1]]), '%m')
 
   out <- stats::aggregate(list(Count = x[, 1]),
                           x[c('Year', 'Month')],

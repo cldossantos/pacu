@@ -1,4 +1,11 @@
 
+
+## 2025-04-11
+
+- Version 0.1.59
+
+- Better error messages for pa_initialize_dataspace
+
 ## 2025-04-09
 
 - Version 0.1.58
