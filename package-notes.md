@@ -1,4 +1,9 @@
 
+## 2025-04-22
+
+- Version 0.1.60
+
+- Improvements to pa_trial
 
 ## 2025-04-11
 

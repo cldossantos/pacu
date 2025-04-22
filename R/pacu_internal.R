@@ -1161,9 +1161,9 @@
 
   ## for now, we are limiting the number of cores to 1, as kriging paralellization has
   ## shown to be fatal in windows...
-  #if (cores > 1){
-  #  cores <- 1
-  #}
+  if (cores > 1){
+    cores <- 1
+  }
 
 
   if (is.null(new.df)) {

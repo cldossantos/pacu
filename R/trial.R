@@ -434,12 +434,17 @@ pa_trial <- function(input,
   if(pb)
     utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
 
+  col.order <- names(preds)
+  preds$fid <- paste0('fid-', 1:nrow(preds))
+  preds$fid <- as.factor(preds$fid)
+  preds <- preds[c('fid', col.order)]
+  
   attr(preds, 'units') <- out.units
   attr(preds, 'algorithm') <- algorithm
   attr(preds, 'resp') <- var.label
   attr(preds, 'smooth.method') <- smooth.method
   attr(preds, 'formula') <- form
-
+  
   res <- list(trial = preds,
               variogram = variogram,
               variogram.model = variogram.model,
