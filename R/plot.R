@@ -682,7 +682,7 @@ pa_plot.met <- function(x,
       plt.units <- c('\u00B0F', '\u00B0F', 'MJ/m2', 'in')
     }
     
-    weather.data$date <- as.Date(weather.data$day, '%j', origin = '2019-12-31')
+    weather.data$date <- as.Date(weather.data$day, '%j', origin = as.Date('2019-12-31'))
     weather.data$month <- as.numeric(strftime(weather.data$date, '%m'))
     weather.data$month.abb <- factor(strftime(weather.data$date, '%b'),
                                      ordered = TRUE, levels = month.abb)
