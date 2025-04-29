@@ -1,4 +1,13 @@
 
+## 2025-04-29
+
+- Version 0.1.62
+
+-  Improvements to the operation that removes crossed polygons in 
+pa_yield. Before, the operation used st_covered_by. Now, we 
+use st_intersects and look for polygons that intersect with 
+only one experimental unit.
+
 
 ## 2025-04-23
 

@@ -490,9 +490,10 @@ pa_yield <- function(input,
       
       grid <- sf::st_transform(grid, sf::st_crs(input))
       cpi <- sf::st_covered_by(adj.pols, grid)
-      cpi <- as.numeric(cpi)
-      crossed.pols <- adj.pols[is.na(cpi), ]
-      adj.pols <- adj.pols[!is.na(cpi), ]
+      cpi <- sf::st_intersects(adj.pols, grid)
+      cpi <- sapply(cpi, function(x) length(x) != 1)
+      crossed.pols <- adj.pols[cpi, ]
+      adj.pols <- adj.pols[!cpi, ]
       if (verbose) {cat('removing ', sum(is.na(cpi)), 'vehicle polygons that crossed experimental units from the grid \n')}
     }
     
