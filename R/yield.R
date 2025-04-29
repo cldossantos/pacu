@@ -490,7 +490,7 @@ pa_yield <- function(input,
       
       grid <- sf::st_transform(grid, sf::st_crs(input))
       cpi <- sf::st_covered_by(adj.pols, grid)
-      cpi <- sf::st_intersects(adj.pols, grid)
+      cpi <- sf::st_intersects(sf::st_buffer(adj.pols, -0.01), grid)
       cpi <- sapply(cpi, function(x) length(x) != 1)
       crossed.pols <- adj.pols[cpi, ]
       adj.pols <- adj.pols[!cpi, ]
