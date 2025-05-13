@@ -5,8 +5,8 @@
 #' @return No return value, called for side effects
 #' @export
 pa_plot <- function(x, ...){
-  if (utils::packageVersion('tmap') < '4.0'){
-    stop('Please update the "tmap" library to a version >= 4.0.')
+  if (utils::packageVersion('tmap') < '4.1'){
+    stop('Please update the "tmap" library to a version >= 4.1.')
   }
   UseMethod('pa_plot', x)
 }
@@ -526,7 +526,7 @@ pa_plot.rgb <- function(x,
       max_color_value = max(sm)
     ),
     col_alpha = alpha,
-    options = tmap:::opt_tm_rgb(interpolate = interpolate, ## the maintainer forgot to export this function
+    options = tmap::opt_tm_rgb(interpolate = interpolate, ## the maintainer forgot to export this function
                                 ## will be exported in the next commit...
                                 saturation = saturation))+
     tmap::tm_title(text = main)

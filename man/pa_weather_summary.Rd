@@ -34,7 +34,7 @@ NASA Power and the Iowa Environmental Mesonet using the
 apsimx package/
 }
 \examples{
-\donttest{
+\dontrun{
 extd.dir <- system.file("extdata", package = "pacu")
 area.of.interest <- sf::st_read(file.path(extd.dir, 'cobs_a_aoi.shp'))
 weather.met <- pa_get_weather_sf(aoi = area.of.interest,

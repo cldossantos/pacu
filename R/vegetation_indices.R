@@ -10,6 +10,9 @@
 #' @param vi the vegetation index to be computed
 #' @param aoi NULL or an sf object used to crop the
 #'   vegetation index raster to an area of interest
+#' @param formula an optional two-sided formula with the vegetation
+#' index name on the left side and the relationship between the bands
+#' on the right side. See example.
 #' @param check.clouds whether to check for clouds over the
 #'   area of interest. If clouds are found, the function
 #'   will skip cloudy images.
@@ -32,13 +35,19 @@
 #'   index-relevant bands, and then computes the index. If
 #'   no \sQuote{aoi} is provided, the script will compute
 #'   the vegetation index for the area covered by the image.
-#'   The vegetation indices are computed as follows:
+#'   The pre-specified vegetation indices are computed as follows:
 #'   \deqn{BSI = \frac{(SWIR + RED) - (NIR + BLUE)}{(SWIR + RED) + (NIR + BLUE)}}
 #'   \deqn{EVI = \frac{2.5 \times (NIR - RED)}{(NIR + (6 \times RED) - (7.5 \times BLUE) - 1) }}
 #'   \deqn{GCVI = \frac{(NIR)}{(GREEN)} - 1}
 #'   \deqn{NDRE = \frac{(NIR - RED edge)}{(NIR + RED edge)}} 
 #'   \deqn{NDVI = \frac{(NIR - RED)}{(NIR + RED)}} 
 #'   \deqn{RECI = \frac{(NIR)}{(RED edge)} - 1}
+#'   
+#'   The user can also specify custom vegetation indices using the formula 
+#'   argument. The formula should be two-sided, with the left side naming the
+#'   vegetation index and the right side defining the mathematical operations
+#'   used to calculate the vegetation index. The bands should be specified
+#'   as B01, B02, ..., B12.
 #' 
 #'   An important detail of this function is that, if there are
 #'   duplicated dates, the function will consolidate the data into 
@@ -54,22 +63,32 @@
 #' ## List of zipped Sentinel files in a directory
 #' s2a.files <- list.files(extd.dir, '\\.zip', full.names = TRUE)
 #' area.of.interest <- sf::st_read(file.path(extd.dir, 'cobs_a_aoi.shp'))
+#' 
+#' ## computing ndvi
 #' ndvi <- pa_compute_vi(satellite.images = s2a.files,
 #'                             vi = 'ndvi',
 #'                             aoi = area.of.interest,
 #'                             check.clouds = TRUE)
 #'
+#' ## computing ndre
 #' ndre <- pa_compute_vi(satellite.images = s2a.files,
 #'                             vi = 'ndre',
 #'                             aoi = area.of.interest,
 #'                             check.clouds = TRUE)
 #'
-#'
+#' ## specifying a differente vegetation index, in this case, the 
+#' ## excess green index
+#' egi <- pa_compute_vi(satellite.images = s2a.files,
+#'                             vi = 'other',
+#'                             formula = EGI ~ (2 * B03) - B02 - B04,
+#'                             aoi = area.of.interest,
+#'                             check.clouds = TRUE)
 #' }
 #'
 pa_compute_vi <- function(satellite.images,
-                          vi =c('ndvi', 'ndre', 'gcvi', 'reci', 'evi', 'bsi'),
+                          vi =c('ndvi', 'ndre', 'gcvi', 'reci', 'evi', 'bsi', 'other'),
                           aoi = NULL,
+                          formula = NULL,
                           check.clouds = FALSE,
                           buffer.clouds = 100,
                           downscale.to = NULL,
@@ -94,21 +113,29 @@ pa_compute_vi <- function(satellite.images,
   if(length(satellite.images) < 1)
     stop('There are no images in satellite.images')
   
+  if (!is.null(formula) && vi != 'other')
+    stop('When formula is not NULL, vi must be other')
   
-  ibands <- list(ndvi = c('B08', 'B04'),
-                 ndre = c('B08', 'B05'),
-                 gcvi = c('B08', 'B03'),
-                 reci = c('B08', 'B05'),
-                 evi = c('B08', 'B04', 'B02'),
-                 bsi = c('B11', 'B04', 'B02', 'B08' ))
   
-  iops <- list(ndvi = expression((b[[1]] - b[[2]]) / (b[[1]] + b[[2]])),
-               ndre = expression((b[[1]] - b[[2]]) / (b[[1]] + b[[2]])),
-               gcvi = expression(b[[1]]/b[[2]] - 1),
-               reci = expression(b[[1]]/b[[2]] - 1),
-               evi = expression(2.5 * (b[[1]] - b[[2]]) / ((b[[1]] + 6.0 * b[[2]] - 7.5 * b[[3]]) + 1.0)),
-               bsi = expression(((b[[1]] + b[[2]]) - (b[[4]] + b[[3]])) / ((b[[1]] + b[[2]]) + (b[[4]] + b[[3]]))))
+
+  iops <- list(ndvi = expression((B08 - B04) / (B08 + B04)),
+               ndre = expression((B08 - B05) / (B08 + B05)),
+               gcvi = expression(B08/B03 - 1),
+               reci = expression(B08/B05 - 1),
+               evi = expression(2.5 * (B08 - B04) / ((B08 + 6.0 * B04 - 7.5 * B02) + 1.0)),
+               bsi = expression(((B11 + B04) - (B08 + B02)) / ((B11 + B04) + (B08 + B02))))
   
+  
+  if (vi == 'other'){
+    ibands <- all.vars(formula)[-1]
+    vi <- all.vars(formula)[1]
+    form <- as.list(formula)
+    form <- form[[length(form)]]
+    ind.op <- as.expression(form)
+  }else{
+    ind.op <- iops[[vi]]
+    ibands <- all.vars(ind.op)
+  }
   
   res <- list()
   
@@ -170,7 +197,7 @@ pa_compute_vi <- function(satellite.images,
                  junkpaths = TRUE)
     
     rs <- list()
-    for (b in ibands[[vi]]){
+    for (b in ibands){
       bpath <- .pa_get_band(b, temporary.dir, pixel.res, img.formats)
       bimg <- stars::read_stars(bpath)
       
@@ -206,8 +233,8 @@ pa_compute_vi <- function(satellite.images,
       }
     }
     
-    op <- iops[[vi]]
-    img <- eval(op, list(b = rs))
+    names(rs) <- ibands
+    img <- eval(ind.op, rs)
     img <- stars::st_as_stars(img)
     
     metadata.file <- .pa_select_s2_files(sat.img, which = 'metadata')

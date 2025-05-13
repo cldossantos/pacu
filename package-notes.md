@@ -1,4 +1,11 @@
 
+## 2025-05-13
+
+- Version 0.1.63
+
+- Improvements to "pa_compute_vi()". The user can now specify a formula when
+computing a vegetation index for custom vi's.
+
 ## 2025-04-29
 
 - Version 0.1.62

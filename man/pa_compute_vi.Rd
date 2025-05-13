@@ -7,8 +7,9 @@
 \usage{
 pa_compute_vi(
   satellite.images,
-  vi = c("ndvi", "ndre", "gcvi", "reci", "evi", "bsi"),
+  vi = c("ndvi", "ndre", "gcvi", "reci", "evi", "bsi", "other"),
   aoi = NULL,
+  formula = NULL,
   check.clouds = FALSE,
   buffer.clouds = 100,
   downscale.to = NULL,
@@ -26,6 +27,10 @@ Sentinel 2 zip files}
 
 \item{aoi}{NULL or an sf object used to crop the
 vegetation index raster to an area of interest}
+
+\item{formula}{an optional two-sided formula with the vegetation
+index name on the left side and the relationship between the bands
+on the right side. See example.}
 
 \item{check.clouds}{whether to check for clouds over the
 area of interest. If clouds are found, the function
@@ -64,13 +69,19 @@ This is script that unzips the Sentinel 2 zipped
   index-relevant bands, and then computes the index. If
   no \sQuote{aoi} is provided, the script will compute
   the vegetation index for the area covered by the image.
-  The vegetation indices are computed as follows:
+  The pre-specified vegetation indices are computed as follows:
   \deqn{BSI = \frac{(SWIR + RED) - (NIR + BLUE)}{(SWIR + RED) + (NIR + BLUE)}}
   \deqn{EVI = \frac{2.5 \times (NIR - RED)}{(NIR + (6 \times RED) - (7.5 \times BLUE) - 1) }}
   \deqn{GCVI = \frac{(NIR)}{(GREEN)} - 1}
   \deqn{NDRE = \frac{(NIR - RED edge)}{(NIR + RED edge)}} 
   \deqn{NDVI = \frac{(NIR - RED)}{(NIR + RED)}} 
   \deqn{RECI = \frac{(NIR)}{(RED edge)} - 1}
+  
+  The user can also specify custom vegetation indices using the formula 
+  argument. The formula should be two-sided, with the left side naming the
+  vegetation index and the right side defining the mathematical operations
+  used to calculate the vegetation index. The bands should be specified
+  as B01, B02, ..., B12.
 
   An important detail of this function is that, if there are
   duplicated dates, the function will consolidate the data into 
@@ -84,17 +95,26 @@ extd.dir <- system.file("extdata", package = "pacu")
 ## List of zipped Sentinel files in a directory
 s2a.files <- list.files(extd.dir, '\\\\.zip', full.names = TRUE)
 area.of.interest <- sf::st_read(file.path(extd.dir, 'cobs_a_aoi.shp'))
+
+## computing ndvi
 ndvi <- pa_compute_vi(satellite.images = s2a.files,
                             vi = 'ndvi',
                             aoi = area.of.interest,
                             check.clouds = TRUE)
 
+## computing ndre
 ndre <- pa_compute_vi(satellite.images = s2a.files,
                             vi = 'ndre',
                             aoi = area.of.interest,
                             check.clouds = TRUE)
 
-
+## specifying a differente vegetation index, in this case, the 
+## excess green index
+egi <- pa_compute_vi(satellite.images = s2a.files,
+                            vi = 'other',
+                            formula = EGI ~ (2 * B03) - B02 - B04,
+                            aoi = area.of.interest,
+                            check.clouds = TRUE)
 }
 
 }
