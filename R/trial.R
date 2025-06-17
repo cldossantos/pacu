@@ -369,10 +369,6 @@ pa_trial <- function(input,
     preds <- preds[c(var.label,  paste0(var.label,'.var'), 'geometry')]
     sf::st_geometry(preds) <- 'geometry'
     
-    if (!is.null(grid)){
-      if(length(exp.vars) > 0)
-        preds <- cbind(preds, as.data.frame(grid)[exp.vars])
-    }
     
     
   }
@@ -441,7 +437,7 @@ pa_trial <- function(input,
   
   attr(preds, 'units') <- out.units
   attr(preds, 'algorithm') <- algorithm
-  attr(preds, 'resp') <- var.label
+  attr(preds, 'resp') <-  var.label
   attr(preds, 'smooth.method') <- smooth.method
   attr(preds, 'formula') <- form
   
@@ -460,3 +456,6 @@ pa_trial <- function(input,
   return(res)
 
 }
+
+
+

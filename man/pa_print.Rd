@@ -5,6 +5,7 @@
 \alias{print.yield}
 \alias{print.dslist}
 \alias{print.check.yield}
+\alias{print.trial}
 \title{Print a pacu object}
 \usage{
 \method{print}{yield}(x, ...)
@@ -12,6 +13,8 @@
 \method{print}{dslist}(x, ...)
 
 \method{print}{check.yield}(x, ...)
+
+\method{print}{trial}(x, ...)
 }
 \arguments{
 \item{x}{object to be printed}

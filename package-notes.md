@@ -1,3 +1,11 @@
+## 2025-06-17
+
+- Version 0.1.64
+
+- Improvements to "pa_trial" and "pa_plot.trial" and implementation of "merge.trial".
+Now, users can merge different trial objects to account for experiments in which there
+are multiple "as-applied" data sets. Additionally, pa_plot can now handle multiple 
+an object with more than one response variable.
 
 ## 2025-05-13
 

@@ -355,46 +355,60 @@ pa_plot.trial <- function(x,
     cols <- function(n) {hcl.colors(n, palette, rev = TRUE)}
     ## setting the tmap mode
     if(interactive){suppressMessages(tmap::tmap_mode("view"))} else {suppressMessages(tmap::tmap_mode('plot'))}
+    
+    
     ## the basic plot
     p <- tmap::tm_shape(x$trial,
                         bbox = extent)
     
+    
+    plot.list <- vector('list', length(plot.var))
+    for (i in 1:length(plot.list)){
+    var.index <- which(attr(x$trial, 'resp') %in% plot.var[i])
+    legend.title <- paste0(plot.var[i], '\n(',
+                           attr(x$trial, 'units')[var.index], ')')
     if (sf::st_geometry_type(x$trial[1, ]) %in% c("POLYGON", 'MULTIPOLYGON')){
-      p <- p +
-        tmap::tm_borders(col = border.col,
-                         lwd = 0.5) +
-        tmap::tm_polygons(fill = plot.var,
-                          fill.legend = tmap::tm_legend(
-                            title = attr(x$trial, 'units')),
-                          fill.scale = tmap::tm_scale_intervals(
-                            n = nbreaks, 
-                            style =  style,
-                            values = cols(nbreaks)
-                          ),
-                          col = border.col)
+        pi <- p +
+          tmap::tm_borders(col = border.col,
+                           lwd = 0.5) +
+          tmap::tm_polygons(fill = plot.var[i],
+                            fill.legend = tmap::tm_legend(
+                              title = legend.title),
+                            fill.scale = tmap::tm_scale_intervals(
+                              n = nbreaks, 
+                              style =  style,
+                              values = cols(nbreaks)
+                            ),
+                            col = border.col)
+        
       
+      if (sf::st_geometry_type(x$trial[1, ]) %in% c("POINT", 'MULTIPOINT')){
+        pi <- pi + tmap::tm_dots(fill = plot.var[i],
+                               fill.scale = tmap::tm_scale_intervals(
+                                 n = nbreaks,
+                                 style = style,
+                                 values = cols(nbreaks)
+                               ),
+                               fill.legend = tmap::tm_legend(
+                                 title = attr(x$trial, 'units')[var.index]
+                               ))
+        
+      }
+      ## adjusting the layout
+      pi <- pi + 
+        tmap::tm_layout(scale = scale,
+                        frame = frame,
+                        title.size = 1)+
+        tmap::tm_title(text = main)
+      
+        
     }
     
-    if (sf::st_geometry_type(x$trial[1, ]) %in% c("POINT", 'MULTIPOINT')){
-      p <- p + tmap::tm_dots(fill = plot.var,
-                             fill.scale = tmap::tm_scale_intervals(
-                               n = nbreaks,
-                               style = style,
-                               values = cols(nbreaks)
-                             ),
-                             fill.legend = tmap::tm_legend(
-                               title = attr(x$trial, 'units')
-                             ))
+      plot.list[[i]] <- pi
+      }
+    pall <- do.call(tmap::tmap_arrange, plot.list)
       
-    }
-    ## adjusting the layout
-    p <- p + 
-      tmap::tm_layout(scale = scale,
-                      frame = frame,
-                      title.size = 1)+
-      tmap::tm_title(text = main)
-    
-    print(p)
+    print(pall)
   }
 }
 
