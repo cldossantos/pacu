@@ -561,10 +561,6 @@ pa_yield <- function(input,
     preds <- preds[c(var.label,  paste0(var.label,'.var'), 'geometry')]
     sf::st_geometry(preds) <- 'geometry'
     
-    if (!is.null(grid)){
-      if(length(exp.vars) > 0)
-        preds <- cbind(preds, as.data.frame(grid)[exp.vars])
-    }
     
     preds[[1]] <- .pa_unit_system(preds[[1]], unit.system, lbs.per.bushel)
     preds[[2]] <- .pa_unit_system(preds[[2]], unit.system, lbs.per.bushel, 2)
@@ -626,6 +622,10 @@ pa_yield <- function(input,
   if(pb)
     utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
   
+    if (!is.null(grid)){
+      if(length(exp.vars) > 0)
+        preds <- cbind(preds, as.data.frame(grid)[exp.vars])
+    }
   attr(preds, 'moisture') <- moisture.adj
   attr(preds, 'units') <- paste(unlist(units(preds[[var.label]])[1:2]), collapse = '/')
   attr(preds, 'algorithm') <- algorithm

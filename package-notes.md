@@ -1,3 +1,11 @@
+## 2025-06-19 
+
+- Version 0.1.65
+
+- Fixed a bug in pa_yield that would not merge the treatment information unless
+the smooth method was "krige". Now, every time a "trial" object is passed to pa_yield, 
+the trial information is merged to the final "yield" object.
+
 ## 2025-06-17
 
 - Version 0.1.64
