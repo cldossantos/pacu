@@ -1,18 +1,54 @@
 #'
-#' @title Create an interpolated trial object from as applied data
-#' @description Create an interpolated trial object from as applied data
+#' @title EXPERIMENTAL FUNCTION - Create an interpolated trial object from as-applied data
+#' @description EXPERIMENTAL FUNCTION - Create an interpolated trial object from as-applied data
 #' @name pa_trial
-#' @noRd
+#' @rdname pa_trial
 #' @param input an sf object containing the as applied trial
-#' @param data.columns tbd
-#' @param data.units tbd
+#' @param data.columns When algorithm is \sQuote{simple},
+#'   this argument should be a vector of length one indicating which 
+#'   column contains the \sQuote{trial or as-applied} data. 
+#'   When algorithm is \sQuote{ritas}, an optional
+#'   named vector with the column names for the variables
+#'   \sQuote{trial, angle, swath,
+#'   distance}. If a an unnamed vector is supplied, the
+#'   vector is assumed to be in this order. The default is
+#'   NULL, in which case the function attempts to guess the
+#'   columns by using a dictionary of possible guesses.
+#'   The column indicating the \sQuote{trial} information is not guessed, 
+#'   as there are too many possible options 
+#'   (seeds, fertilizer, soil amendments, etc).
+#' @param data.units When algorithm is \sQuote{simple},
+#'   should be a vector of length one indicating the units
+#'   of the trial column and the moisture column. Common
+#'   values would be \sQuote{c('kg N/ha', 'seeds/acre')}. When
+#'   algorithm is \sQuote{ritas}, an optional named vector
+#'   with strings representing units for the variables
+#'   \sQuote{trial, angle, swath,
+#'   distance}. If a an unnamed vector is supplied, the
+#'   vector is assumed to be in this order. A typical value
+#'   for this argument would be \sQuote{c(trial = 'kg N/ha',
+#'    angle = 'degreeN',
+#'   width = 'ft', distance = 'ft')}. Please see
+#'   \link[units]{valid_udunits} for help with specifying
+#'   units. The default is NULL, in which case the function
+#'   attempts to guess the units according to the values of
+#'   the variable. The units of \sQuote{trial} are not guessed, 
+#'   as there are too many possible options (seeds, fertilizer, soil amendments, etc).
 #' @param grid an sf object containing the prediction grid.
-#'   If the user is processing yield data coming from a
+#'   If the user is processing as-applied data coming from a
 #'   research trial (i.e. follows a trial design), the user
 #'   can pass the sf object containing the trial design
 #'   information to this argument. 
 #' @param algorithm algorithm used to generate the yield
 #'   object.
+#' @param formula formula defining the relationship between
+#'   the dependent and independent variables. If the
+#'   dependent variable is a linear function of the
+#'   coordinates, the formula can be \sQuote{z ~ X + Y}. If
+#'   the dependent variable is modeled only as a function of
+#'   the mean spatial process, the formula can be \sQuote{z
+#'   ~ 1}. If no formula is supplied, it defaults to
+#'   \sQuote{z ~ 1}.
 #' @param var.label optional string to name the final
 #'   product. Defaults to \sQuote{as.applied}.
 #' @param boundary optional sf object representing the
@@ -27,6 +63,11 @@
 #' @param clean.edge.distance distance, in meters, from the
 #'   field edge above which the cleaning step will remove
 #'   data. Defaults to 0.
+#' @param smooth.method the smoothing method to be used. If
+#'   \sQuote{none}, no smoothing will be conducted. If
+#'   \sQuote{idw}, inverse distance weighted interpolation
+#'   will be conducted. If \sQuote{krige}, kriging will be
+#'   conducted.
 #' @param conversion.factor a conversion factor by which the 
 #' input trial data will be multiplied. This is useful for 
 #' cases in which the user wants the output in different units from 
@@ -36,6 +77,9 @@
 #' @param out.units units of the output after being multiplied by
 #' the conversion factor. If conversion.factor is 1 and out.units
 #' is NULL, out.units will default to the units of the trial input.
+#' @param na.to.zero whether areas in which the trial applicator has not covered
+#' should be assigned a value of zero. This is only effective when \sQuote{algorithm}
+#' is \sQuote{ritas}. Defaults to TRUE. 
 #' @param cores the number of cores used in the operation
 #' @param verbose whether to print function progress.
 #'   \sQuote{FALSE or 0} will suppress details. \sQuote{TRUE
@@ -44,10 +88,11 @@
 #' @param ... additional arguments to be passed
 #'   \link[gstat]{krige} and \link[gstat]{idw}
 #' @details This function will follow the steps in the
-#'   selected algorithm to produce a yield map from the raw
+#'   selected algorithm to produce a  map of as-applied trial from the raw
 #'   data.
-#' @return an object of class yield
+#' @return an object of class trial
 #' @author Caio dos Santos and Fernando Miguez
+#' @export
 #' @examples
 #' \dontrun{
 #' ## tbd
@@ -67,7 +112,6 @@ pa_trial <- function(input,
                      clean.edge.distance = 0,
                      out.units = NULL,
                      conversion.factor = 1,
-                     lag.adj = 0,
                      na.to.zero = TRUE,
                      cores = 1L,
                      verbose = TRUE,
@@ -240,9 +284,9 @@ pa_trial <- function(input,
   if (algorithm == 'ritas') {
     
     ## handling units and column names
-    exp.order <- c('trial','interval', 'angle', 'width', 'distance')
-    if (is.null(data.columns)) data.columns <- rep(NA, 5)
-    if (is.null(data.units)) data.units <- rep(NA, 5)
+    exp.order <- c('trial', 'angle', 'width', 'distance')
+    if (is.null(data.columns)) data.columns <- rep(NA, 4)
+    if (is.null(data.units)) data.units <- rep(NA, 4)
     if(is.null(names(data.columns))) names(data.columns) <- exp.order
     if(is.null(names(data.units))) names(data.units) <- exp.order
     data.units <- data.units[exp.order]
@@ -252,16 +296,6 @@ pa_trial <- function(input,
     if (is.null(out.units) && conversion.factor == 1)
       out.units <- data.units['trial']
     
-    interval <- .pa_get_variable(input, 'interval', data.units['interval'], data.columns['interval'], verbose)
-    if (is.null(interval)) {
-      time.col <- .pa_get_variable_columns(input, 'time', verbose)
-      if (!is.null(time.col)){
-        time <- input[[time.col]]
-        interval <- .pa_time2interval(time)
-        interval <- .pa_enforce_units(interval, 'time')
-        input$interval <- interval
-      }
-    }
 
     ## keeping track of the units. this is intend this to prevent mistakes.
     trial <- input[[data.columns['trial']]]
@@ -275,7 +309,7 @@ pa_trial <- function(input,
     distance <- .pa_get_variable(input, 'distance', data.units['distance'], data.columns['distance'], verbose)
 
     ## checking that all necessary variables were found
-    not.found <- sapply(list(trial, interval, angle, swath, distance), is.null)
+    not.found <- sapply(list(trial, angle, swath, distance), is.null)
     if(any(not.found)) {
       not.found.i <- which(not.found == TRUE)
       stop('unable to find column(s): ', paste(exp.order[not.found.i], collapse = ', '))
@@ -435,6 +469,7 @@ pa_trial <- function(input,
   preds$fid <- as.factor(preds$fid)
   preds <- preds[c('fid', col.order)]
   
+  out.units[is.na(out.units)] <- 'unknown'
   attr(preds, 'units') <- out.units
   attr(preds, 'algorithm') <- algorithm
   attr(preds, 'resp') <-  var.label

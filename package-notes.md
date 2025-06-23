@@ -1,3 +1,10 @@
+
+## 2025-06-123
+
+- Version 0.1.66
+
+- Exporting "pa_trial" as an experimental function for tests. 
+
 ## 2025-06-19 
 
 - Version 0.1.65
