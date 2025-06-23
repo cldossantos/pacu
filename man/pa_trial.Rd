@@ -19,7 +19,7 @@ pa_trial(
   clean.edge.distance = 0,
   out.units = NULL,
   conversion.factor = 1,
-  na.to.zero = TRUE,
+  na.to.zero = ifelse(algorithm == "ritas", TRUE, FALSE),
   cores = 1L,
   verbose = TRUE,
   ...
@@ -116,7 +116,7 @@ In this case, conversion.factor should be set to 0.5.}
 
 \item{na.to.zero}{whether areas in which the trial applicator has not covered
 should be assigned a value of zero. This is only effective when \sQuote{algorithm}
-is \sQuote{ritas}. Defaults to TRUE.}
+is \sQuote{ritas}. Defaults to TRUE when \sQuote{algorithm} is \sQuote{ritas}.}
 
 \item{cores}{the number of cores used in the operation}
 

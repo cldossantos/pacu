@@ -79,7 +79,7 @@
 #' is NULL, out.units will default to the units of the trial input.
 #' @param na.to.zero whether areas in which the trial applicator has not covered
 #' should be assigned a value of zero. This is only effective when \sQuote{algorithm}
-#' is \sQuote{ritas}. Defaults to TRUE. 
+#' is \sQuote{ritas}. Defaults to TRUE when \sQuote{algorithm} is \sQuote{ritas}. 
 #' @param cores the number of cores used in the operation
 #' @param verbose whether to print function progress.
 #'   \sQuote{FALSE or 0} will suppress details. \sQuote{TRUE
@@ -112,7 +112,7 @@ pa_trial <- function(input,
                      clean.edge.distance = 0,
                      out.units = NULL,
                      conversion.factor = 1,
-                     na.to.zero = TRUE,
+                     na.to.zero = ifelse(algorithm == 'ritas', TRUE, FALSE),
                      cores = 1L,
                      verbose = TRUE,
                      ...) {
