@@ -159,17 +159,18 @@ print.trial <- function(x, ...){
   
   cat('\nVariable summary:\n')
   for ( i in 1:length(summaries)){
-    summ <- summary(xd[[i]])
-    summ <- data.frame(statistic = names(summ), value = as.numeric(summ))
-    
-    if (i > 1)
-      summ <- summ[2]
-    
+    summ <- fivenum(xd[[i]])
+    nas <- sum(is.na(xd[[i]]))
+    xbar <- mean(xd[[i]], na.rm = TRUE)
+    summ <- c(summ, xbar, nas)
+    summ <- data.frame(value = summ)
     summ$value <- round(summ$value, getOption('digits')) 
     summaries[[i]] <- summ
   }
   
   summ <- do.call(cbind, summaries)
+  ids <- data.frame(statistic = c('Min.', '1st Qt.', 'Median', '3rd Qt.', 'Max.', 'Mean', 'NAs'))
+  summ <- cbind(ids, summ)
   names(summ) <- c(' ', attr(x$trial, 'resp'))
   
   .pa_print_table(summ, headers = TRUE)

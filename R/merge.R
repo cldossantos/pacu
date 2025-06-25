@@ -38,7 +38,8 @@ merge.trial <- function(...){
     resp.i <- attr(trials[[i]][['trial']], 'resp')
     trial.obj <- sf::st_join(trial.obj,
                              trials[[i]][['trial']][resp.i],
-                             join = sf::st_equals)
+                             join = sf::st_equals,
+                             left = TRUE)
     
     units <- c(units, attr(trials[[i]][['trial']], 'units'))
     algorithm <- c(algorithm, attr(trials[[i]][['trial']], 'algorithm'))
@@ -50,7 +51,6 @@ merge.trial <- function(...){
     variograms[[i]] <- trials[[i]][['variogram']]
     variogram.models[[i]] <- trials[[i]][['variogram.model']]
   }
-  
   
   attr(trial.obj, 'units') <- units
   attr(trial.obj, 'algorithm') <- algorithm

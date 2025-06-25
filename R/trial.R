@@ -54,7 +54,7 @@
 #' @param boundary optional sf object representing the
 #'   field's outer boundary. If it not supplied, the
 #'   function attempts to generate a boundary from the
-#'   observed points.
+#'   observed points. 
 #' @param clean whether to clean the raw data based on
 #'   distance from the field edge and global standard
 #'   deviation.
@@ -116,23 +116,23 @@ pa_trial <- function(input,
                      cores = 1L,
                      verbose = TRUE,
                      ...) {
-
-
+  
+  
   algorithm <- match.arg(algorithm)
   pb <- ifelse(verbose == 1, TRUE, FALSE)
   smooth.method <- match.arg(smooth.method)
   verbose <- ifelse(verbose > 1, 1, 0)
   mass <- NA
-
+  
   s.wrns <-  get("suppress.warnings", envir = pacu.options)
   s.msgs <-  get("suppress.messages", envir = pacu.options)
-
+  
   if (algorithm == 'none')
     stop('Please choose between the simple and ritas algorithms')
-
+  
   if (any(!(data.columns[!is.na(data.columns)] %in% names(input))))
     stop('One or more of the data.columns supplied does not match any columns in the input.')
-
+  
   if (is.null(grid))
     stop('Grid is needed to process trial application data. Usually this is simply the experimental design.')
   
@@ -140,17 +140,17 @@ pa_trial <- function(input,
     stop('When conversion.factor is different from 1, data.units and out.units are needed')
   
   
-
+  
   if(verbose) cat("Starting... \n")
-
+  
   crt.crs <- sf::st_crs(input)
   if(is.na(crt.crs)) {
     if (verbose) cat("No CRS found. Defaulting to EPSG:4326 \n")
     sf::st_crs(input) <- 'epsg:4326'
   }
-
+  
   input <- pa_2utm(input, verbose) ## This step appears to be quick
-
+  
   if(!is.null(boundary)){
     if (sf::st_crs(boundary) != sf::st_crs(input)) {
       boundary <- sf::st_transform(boundary, sf::st_crs(input))
@@ -208,9 +208,9 @@ pa_trial <- function(input,
     if (!all(exp.vars %in% names(grid)))
       stop('One or more of the explanatory variables are not present in the grid.')
   }
-
-
-
+  
+  
+  
   if (algorithm == 'simple') {
     
     if (is.null(data.columns))
@@ -222,20 +222,20 @@ pa_trial <- function(input,
     }
     
     if (na.to.zero){
-     if(!s.wrns)
-       warning('When algorithim is "simple", na.to.zero has no effect.')
+      if(!s.wrns)
+        warning('When algorithim is "simple", na.to.zero has no effect.')
     }
-
+    
     if(pb) {
       progress.bar <- utils::txtProgressBar(min = 0, max = 5, style = 3, initial = -1)
       on.exit(close(progress.bar))
     }
-
+    
     exp.order <- c('trial')
     
     if (any(!(names(data.columns) %in% exp.order)))
       stop('One or more of the columns provided to data.columns',
-      'do not match the expected inputs.')
+           'do not match the expected inputs.')
     
     if (is.null(data.columns)) data.columns <- rep(NA, 1)
     if (is.null(data.units)) data.units <- rep(NA, 1)
@@ -249,21 +249,21 @@ pa_trial <- function(input,
     if (is.null(out.units) && conversion.factor == 1)
       out.units <- data.units['trial']
     
- 
+    
     if (is.null(var.label)) var.label <- data.columns[1]
-
+    
     tgt <- input[[data.columns]]
-
+    
     if(pb)
       utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
-
+    
     if(pb)
       utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
-
+    
     tgt <- data.frame(tgt = tgt)
     tgt <- cbind(tgt, sf::st_geometry(input))
     tgt <- st_as_sf(tgt)
-
+    
     if (!is.null(grid)) {
       if (!is.null(boundary)) {
         grid <- sf::st_intersection(grid, boundary)
@@ -272,15 +272,15 @@ pa_trial <- function(input,
       f.grid <- stats::na.omit(f.grid)
       tgt <- f.grid
     }
-
+    
     app.pols <- tgt
     names(app.pols) <- c('mass', 'geometry')
     st_geometry(app.pols) <- 'geometry'
-
+    
     if(pb)
       utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
   }
-
+  
   if (algorithm == 'ritas') {
     
     ## handling units and column names
@@ -292,14 +292,14 @@ pa_trial <- function(input,
     data.units <- data.units[exp.order]
     data.columns <- data.columns[exp.order]
     if (is.null(var.label)) var.label <- data.columns['trial']
-
+    
     if (is.null(out.units) && conversion.factor == 1)
       out.units <- data.units['trial']
     
-
+    
     ## keeping track of the units. this is intend this to prevent mistakes.
     trial <- input[[data.columns['trial']]]
-
+    
     angle <- .pa_get_variable(input, 'angle', data.units['angle'], data.columns['angle'], verbose)
     if(is.null(angle)) {
       if(verbose) cat('Trajectory angle not found. estimating it from geographical coordinates.\n')
@@ -307,77 +307,80 @@ pa_trial <- function(input,
     }
     swath <- .pa_get_variable(input, 'width', data.units['width'], data.columns['width'], verbose)
     distance <- .pa_get_variable(input, 'distance', data.units['distance'], data.columns['distance'], verbose)
-
+    
     ## checking that all necessary variables were found
     not.found <- sapply(list(trial, angle, swath, distance), is.null)
     if(any(not.found)) {
       not.found.i <- which(not.found == TRUE)
       stop('unable to find column(s): ', paste(exp.order[not.found.i], collapse = ', '))
     }
-
+    
     ### might need to change this after testing
     if(pb) {
       progress.bar <- utils::txtProgressBar(min = 0, max = 7, style = 3)
       on.exit(close(progress.bar))
       utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
     }
-
+    
     ## now, we can drop the units because we know which units are
     ## in and out of each operation
     swath <- units::drop_units(swath)
     distance <- units::drop_units(distance)
     angle <- units::drop_units(angle)
-
+    
     if(pb)
       utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
-
+    
     trt.pols <- pa_make_vehicle_polygons(sf::st_geometry(input),
-                                       swath,
-                                       distance,
-                                       angle,
-                                       cores = cores,
-                                       verbose = verbose)
+                                         swath,
+                                         distance,
+                                         angle,
+                                         cores = cores,
+                                         verbose = verbose)
     trt.pols <- sf::st_as_sf(trt.pols)
     trt.pols$trial <- trial
-
+    
     if(pb)
       utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
-
-
+    
+    
     if(pb)
       utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
-
+    
     app.pols <- pa_apportion_mass(polygons =  sf::st_geometry(trt.pols),
-                               mass.vector = trt.pols$trial,
-                               remove.empty.cells = FALSE,
-                               cores = cores,
-                               sum = TRUE,
-                               verbose = verbose)
-
-    boundary <- .pa_field_boundary(sf::st_geometry(input))
+                                  mass.vector = trt.pols$trial,
+                                  remove.empty.cells = FALSE,
+                                  cores = cores,
+                                  sum = TRUE,
+                                  verbose = verbose)
+    
+    if (is.null(boundary)){
+      boundary <- .pa_field_boundary(sf::st_geometry(input))
+    }
+    
     if (na.to.zero){
-    out.boundary <- sf::st_covered_by(app.pols, boundary)
-    out.boundary <- as.numeric(out.boundary)
-    app.pols <- app.pols[!(is.na(out.boundary) & is.na(app.pols$mass)), ]
-    app.pols$mass[is.na(app.pols$mass)] <- 0
+      out.boundary <- sf::st_covered_by(app.pols, boundary)
+      out.boundary <- as.numeric(out.boundary)
+      app.pols <- app.pols[!(is.na(out.boundary) & is.na(app.pols$mass)), ]
+      app.pols$mass[is.na(app.pols$mass)] <- 0
     }else{
       app.pols <- stats::na.omit(app.pols)
     }
-
+    
   }
-
+  
   ## the following steps are the same regardless of the algorithm
-
+  
   if (!is.null(grid)){
     app.pols <- suppressWarnings(sf::st_join(app.pols, grid, join = sf::st_intersects, left = TRUE, largest = TRUE))
   }
-
-
-
+  
+  
+  
   if(pb)
     utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
-
-
+  
+  
   if (smooth.method == 'krige'){
     app.pols$mass[app.pols$mass == 0] <- 1e-6
     app.pols$z <- app.pols$mass
@@ -408,7 +411,7 @@ pa_trial <- function(input,
   }
   
   if (smooth.method == 'idw'){
-
+    
     if (form != formula(z ~ 1)){
       stop('The IDW smoothing method does not allow for predictors in the formula. The "formula" argument should be: z ~ 1')
     }
@@ -440,7 +443,7 @@ pa_trial <- function(input,
   if (smooth.method == 'none'){
     preds <- app.pols['mass']
     preds <- stats::na.omit(preds)
-     if (!identical(sf::st_geometry(preds),
+    if (!identical(sf::st_geometry(preds),
                    sf::st_geometry(grid))){
       preds <- .pa_areal_weighted_average(x = preds, 
                                           y = grid, 
@@ -449,6 +452,10 @@ pa_trial <- function(input,
                                           sum = FALSE,
                                           cores = cores)
       preds <- rev(preds)
+    }
+    
+    if (algorithm == 'ritas' && na.to.zero){
+      preds$mass[is.na(preds$mass)] <- 0
     }
     
     preds <- stats::na.omit(preds)
@@ -460,10 +467,10 @@ pa_trial <- function(input,
     variogram <- NULL
     
   }
-
+  
   if(pb)
     utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
-
+  
   col.order <- names(preds)
   preds$fid <- paste0('fid-', 1:nrow(preds))
   preds$fid <- as.factor(preds$fid)
@@ -480,16 +487,16 @@ pa_trial <- function(input,
               variogram = variogram,
               variogram.model = variogram.model,
               steps = NULL)
-
+  
   if(pb)
     utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
-
+  
   if (verbose)
     cat('Processing complete!\n')
-
+  
   class(res) <- c('trial', class(res))
   return(res)
-
+  
 }
 
 
