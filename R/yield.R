@@ -624,7 +624,7 @@ pa_yield <- function(input,
   
     if (!is.null(grid)){
       if(length(exp.vars) > 0)
-        preds <- cbind(preds, as.data.frame(grid)[exp.vars])
+      preds <- sf::st_join(preds, grid[exp.vars], left = TRUE, join = sf::st_equals)
     }
   attr(preds, 'moisture') <- moisture.adj
   attr(preds, 'units') <- paste(unlist(units(preds[[var.label]])[1:2]), collapse = '/')

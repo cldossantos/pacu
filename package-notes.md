@@ -1,5 +1,16 @@
+## 2025-06-27
 
-## 2025-06-123
+- Version 0.1.69
+
+- Support for S2C products in satellite functions.
+
+## 2025-06-27
+
+- Version 0.1.68
+
+- Small bug in pa_trial
+
+## 2025-06-23
 
 - Version 0.1.66
 

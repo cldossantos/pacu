@@ -321,11 +321,11 @@
 }
 
 #'
-#' @title Select files in the S2A and S2B products to crop the file
-#' @description  Select files in the S2A and S2B products to crop the file
+#' @title Select files in the S2A, S2B, and S2C products to crop the file
+#' @description  Select files in the S2A, S2B, and S2C products to crop the file
 #' @name .pa_select_s2_files
 #' @rdname .pa_select_s2_files
-#' @param fpath a file path from which the S2A/S2B files will be select
+#' @param fpath a file path from which the S2A, S2B, and S2C files will be select
 #' @return a vector with relevant file names
 #' @noRd
 
@@ -339,8 +339,8 @@
   imgList <- utils::unzip(fpath, list = TRUE)
   bname <- basename(fpath)
   
-  if (!grepl('^S2A|^S2B', x = bname))
-    stop('Only S2A and S2B functions are supported for now.')
+  if (!grepl('^S2A|^S2B|^S2C', x = bname))
+    stop('Only S2A, S2B, and S2C files are supported for now.')
   
   metadata <- .pa_read_s2_metadata(fpath, to.raw.file = TRUE)
   graticule <- basename(unlist(metadata$General_Info$Product_Info$Product_Organisation))

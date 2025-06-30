@@ -159,7 +159,7 @@ print.trial <- function(x, ...){
   
   cat('\nVariable summary:\n')
   for ( i in 1:length(summaries)){
-    summ <- fivenum(xd[[i]])
+    summ <- stats::fivenum(xd[[i]])
     nas <- sum(is.na(xd[[i]]))
     xbar <- mean(xd[[i]], na.rm = TRUE)
     summ <- c(summ, xbar, nas)
