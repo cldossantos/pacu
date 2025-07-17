@@ -5,6 +5,14 @@
 #' @param satellite.images list of file paths to the Sentinel 2 zip files
 #' @param aoi NULL or an sf object used to crop the RGB raster to an area of interest
 #' @param pixel.res pixel resolution used to retrieve the RGB image. Can be one of 10m, 20m, 30m.
+#' @param check.clouds whether to check for clouds over the
+#'   area of interest. If clouds are found, the function
+#'   will skip cloudy images.
+#' @param buffer.clouds distance in meters around the area
+#'   of interest within a cloud would be considered to
+#'   interfere with the index calculation. This is useful to
+#'   eliminate the effect of cloud shading from the
+#'   analysis.
 #' @param img.formats image formats to search for in the zipped file
 #' @param rgb.bands a vector containing the order of the RGB bands
 #' @param fun function to be applied to consolidate duplicated images
@@ -35,6 +43,8 @@
 pa_get_rgb <- function(satellite.images,
                         aoi = NULL,
                         pixel.res = '10m',
+                          check.clouds = FALSE,
+                          buffer.clouds = 100,
                         img.formats = c('jp2', 'tif'),
                        rgb.bands = c('B04', 'B02', 'B03'),
                        fun = function(x) mean(x, na.rm = TRUE), 
@@ -69,6 +79,31 @@ pa_get_rgb <- function(satellite.images,
     if (verbose > 1) {
       cat('processing ', sat.img, '\n')
     }
+    
+    if(!is.null(aoi) && check.clouds == TRUE) {
+      clouds <- .pa_get_cloud_polygon(sat.img)
+      
+      if(!is.null(clouds)){
+        boundary <- sf::st_as_sfc(sf::st_bbox(sf::st_transform(aoi, sf::st_crs(clouds))))
+        cloud.buffer <- sf::st_buffer(boundary, buffer.clouds)
+        clouds <- sf::st_crop(clouds, cloud.buffer)
+        clouds <- as.data.frame(clouds)
+        clouds <- stats::na.omit(clouds)
+        check.overlap <- FALSE
+        if(any(clouds[[3]] > 0)){check.overlap <- TRUE}
+        
+        
+        if(check.overlap) {
+          if( verbose == 1){
+            warning('Clouds detected over the AOI. Skipping ', basename(sat.img))
+            utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1) 
+          }
+          next
+        }
+        
+      }
+    }
+    
     ## Get list of files inside of the zip file
     bname <- basename(sat.img)
     bname <- strsplit(bname, '\\.')[[1]][1]

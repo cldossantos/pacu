@@ -8,6 +8,8 @@ pa_get_rgb(
   satellite.images,
   aoi = NULL,
   pixel.res = "10m",
+  check.clouds = FALSE,
+  buffer.clouds = 100,
   img.formats = c("jp2", "tif"),
   rgb.bands = c("B04", "B02", "B03"),
   fun = function(x) mean(x, na.rm = TRUE),
@@ -20,6 +22,16 @@ pa_get_rgb(
 \item{aoi}{NULL or an sf object used to crop the RGB raster to an area of interest}
 
 \item{pixel.res}{pixel resolution used to retrieve the RGB image. Can be one of 10m, 20m, 30m.}
+
+\item{check.clouds}{whether to check for clouds over the
+area of interest. If clouds are found, the function
+will skip cloudy images.}
+
+\item{buffer.clouds}{distance in meters around the area
+of interest within a cloud would be considered to
+interfere with the index calculation. This is useful to
+eliminate the effect of cloud shading from the
+analysis.}
 
 \item{img.formats}{image formats to search for in the zipped file}
 
