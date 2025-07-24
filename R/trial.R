@@ -55,14 +55,6 @@
 #'   field's outer boundary. If it not supplied, the
 #'   function attempts to generate a boundary from the
 #'   observed points. 
-#' @param clean whether to clean the raw data based on
-#'   distance from the field edge and global standard
-#'   deviation.
-#' @param clean.sd standard deviation above which the
-#'   cleaning step will remove data. Defaults to 3.
-#' @param clean.edge.distance distance, in meters, from the
-#'   field edge above which the cleaning step will remove
-#'   data. Defaults to 0.
 #' @param smooth.method the smoothing method to be used. If
 #'   \sQuote{none}, no smoothing will be conducted. If
 #'   \sQuote{idw}, inverse distance weighted interpolation
@@ -81,6 +73,8 @@
 #' should be assigned a value of zero. This is only effective when \sQuote{algorithm}
 #' is \sQuote{ritas}. Defaults to TRUE when \sQuote{algorithm} is \sQuote{ritas}. 
 #' @param cores the number of cores used in the operation
+#' @param steps whether to return the intermediate steps 
+#' of the trial processing algorithm
 #' @param verbose whether to print function progress.
 #'   \sQuote{FALSE or 0} will suppress details. \sQuote{TRUE
 #'   or 1} will print a progress bar. \sQuote{>1} will print
@@ -107,13 +101,11 @@ pa_trial <- function(input,
                      boundary = NULL,
                      smooth.method = c('none', 'krige', 'idw'),
                      formula = NULL,
-                     clean = FALSE,
-                     clean.sd = 3,
-                     clean.edge.distance = 0,
                      out.units = NULL,
                      conversion.factor = 1,
                      na.to.zero = ifelse(algorithm == 'ritas', TRUE, FALSE),
                      cores = 1L,
+                     steps = FALSE,
                      verbose = TRUE,
                      ...) {
   
@@ -277,11 +269,17 @@ pa_trial <- function(input,
     names(app.pols) <- c('mass', 'geometry')
     st_geometry(app.pols) <- 'geometry'
     
+  sbs <- list(sf::st_geometry(input), sf::st_geometry(grid))
+  steps.names <- c('initial.geometries', 'grid')
+  names(sbs) <- steps.names
     if(pb)
       utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
   }
   
+  
   if (algorithm == 'ritas') {
+    
+    sbs <- list()
     
     ## handling units and column names
     exp.order <- c('trial', 'angle', 'width', 'distance')
@@ -322,6 +320,8 @@ pa_trial <- function(input,
       utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)
     }
     
+    sbs[[length(sbs) + 1]] <- sf::st_geometry(input)
+    
     ## now, we can drop the units because we know which units are
     ## in and out of each operation
     swath <- units::drop_units(swath)
@@ -337,6 +337,8 @@ pa_trial <- function(input,
                                          angle,
                                          cores = cores,
                                          verbose = verbose)
+    
+    sbs[[length(sbs) + 1]] <- sf::st_geometry(trt.pols)
     trt.pols <- sf::st_as_sf(trt.pols)
     trt.pols$trial <- trial
     
@@ -354,6 +356,7 @@ pa_trial <- function(input,
                                   sum = TRUE,
                                   verbose = verbose)
     
+    
     if (is.null(boundary)){
       boundary <- .pa_field_boundary(sf::st_geometry(input))
     }
@@ -367,6 +370,13 @@ pa_trial <- function(input,
       app.pols <- stats::na.omit(app.pols)
     }
     
+    sbs[[length(sbs) + 1]] <- sf::st_geometry(app.pols)
+    sbs[[length(sbs) + 1]] <- sf::st_geometry(grid)
+    
+    
+  steps.names <- c('initial.points', 'vehicle.polygons', 'apportioned.polygons', 
+                   'grid')
+  names(sbs) <- steps.names
   }
   
   ## the following steps are the same regardless of the algorithm
@@ -487,6 +497,10 @@ pa_trial <- function(input,
               variogram = variogram,
               variogram.model = variogram.model,
               steps = NULL)
+  
+  if (steps){
+  res[['steps']] <- sbs
+  }
   
   if(pb)
     utils::setTxtProgressBar(progress.bar, utils::getTxtProgressBar(progress.bar) + 1)

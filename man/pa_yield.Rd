@@ -158,7 +158,7 @@ units of the grid. This is intented to prevent from
 diluting the treatment effects. When this argument is
 TRUE, the argument \sQuote{grid} must be supplied.}
 
-\item{steps}{EXPERIMENTAL - whether to return the intermediate steps 
+\item{steps}{whether to return the intermediate steps 
 of the yield processing algorithm}
 
 \item{cores}{the number of cores used in the operation}

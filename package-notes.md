@@ -1,3 +1,10 @@
+## 2025-07-24
+
+- Version 0.1.71
+
+- pa_trial now returns intermediate steps too. Still need to creat a 'steps' plot.type
+for pa_plot.trial. 
+
 ## 2025-07-17
 
 - Version 0.1.70

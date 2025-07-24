@@ -541,7 +541,7 @@ pa_plot.rgb <- function(x,
     ),
     col_alpha = alpha,
     options = tmap::opt_tm_rgb(interpolate = interpolate, 
-                                saturation = saturation,
+                                saturation = saturation
                                ))+
     tmap::tm_title(text = main)
   

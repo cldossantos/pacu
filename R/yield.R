@@ -113,7 +113,7 @@
 #'   diluting the treatment effects. When this argument is
 #'   TRUE, the argument \sQuote{grid} must be supplied.
 #' @param cores the number of cores used in the operation
-#' @param steps EXPERIMENTAL - whether to return the intermediate steps 
+#' @param steps whether to return the intermediate steps 
 #' of the yield processing algorithm
 #' @param verbose whether to print function progress.
 #'   \sQuote{FALSE or 0} will suppress details. \sQuote{TRUE

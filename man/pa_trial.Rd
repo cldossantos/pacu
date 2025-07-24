@@ -14,13 +14,11 @@ pa_trial(
   boundary = NULL,
   smooth.method = c("none", "krige", "idw"),
   formula = NULL,
-  clean = FALSE,
-  clean.sd = 3,
-  clean.edge.distance = 0,
   out.units = NULL,
   conversion.factor = 1,
   na.to.zero = ifelse(algorithm == "ritas", TRUE, FALSE),
   cores = 1L,
+  steps = FALSE,
   verbose = TRUE,
   ...
 )
@@ -92,17 +90,6 @@ the mean spatial process, the formula can be \sQuote{z
 ~ 1}. If no formula is supplied, it defaults to
 \sQuote{z ~ 1}.}
 
-\item{clean}{whether to clean the raw data based on
-distance from the field edge and global standard
-deviation.}
-
-\item{clean.sd}{standard deviation above which the
-cleaning step will remove data. Defaults to 3.}
-
-\item{clean.edge.distance}{distance, in meters, from the
-field edge above which the cleaning step will remove
-data. Defaults to 0.}
-
 \item{out.units}{units of the output after being multiplied by
 the conversion factor. If conversion.factor is 1 and out.units
 is NULL, out.units will default to the units of the trial input.}
@@ -119,6 +106,9 @@ should be assigned a value of zero. This is only effective when \sQuote{algorith
 is \sQuote{ritas}. Defaults to TRUE when \sQuote{algorithm} is \sQuote{ritas}.}
 
 \item{cores}{the number of cores used in the operation}
+
+\item{steps}{whether to return the intermediate steps 
+of the trial processing algorithm}
 
 \item{verbose}{whether to print function progress.
 \sQuote{FALSE or 0} will suppress details. \sQuote{TRUE
