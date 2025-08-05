@@ -529,8 +529,10 @@ pa_yield <- function(input,
   
   if (!is.null(grid)){
     app.pols <- suppressWarnings(sf::st_join(app.pols, grid, join = sf::st_intersects, left = TRUE, largest = TRUE))
+    min.cov <- 0
   }else{
     grid <- sf::st_as_sf(st_geometry(app.pols))
+    min.cov <- NULL
   }
   
   
@@ -605,7 +607,9 @@ pa_yield <- function(input,
                                           grid, 
                                           'mass',
                                           sf::st_intersects,
-                                          cores = cores)
+                                          cores = cores,
+                                          min.cov = min.cov
+                                          )
       preds <- rev(preds)
     }
 
