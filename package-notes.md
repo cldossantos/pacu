@@ -4,7 +4,7 @@
 
 - Improvements to pa_yield. Fixed a bug that would discard an experimental unit
 when less than half of the area of the experimental unit was covered. This was intended
-for the apportioning step, but not for the final aggregation step.
+# for the apportioning step, but not for the final aggregation step.
 
 ## 2025-07-24
 
