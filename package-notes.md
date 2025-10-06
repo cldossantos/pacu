@@ -1,10 +1,18 @@
+## 2025-10-06
+
+- Version 0.1.73
+
+- Improvements to pa_get_rgb. Now, instead of reconstructing the RGB image from
+the raw bands, the function uses directly the true color image from Copernicus.
+
+
 ## 2025-08-05
 
 - Version 0.1.72
 
 - Improvements to pa_yield. Fixed a bug that would discard an experimental unit
 when less than half of the area of the experimental unit was covered. This was intended
-# for the apportioning step, but not for the final aggregation step.
+for the apportioning step, but not for the final aggregation step.
 
 ## 2025-07-24
 

@@ -14,7 +14,8 @@
 #'   eliminate the effect of cloud shading from the
 #'   analysis.
 #' @param img.formats image formats to search for in the zipped file
-#' @param rgb.bands a vector containing the order of the RGB bands
+#' @param rgb.bands DEPRECATED - the function now uses directly the 
+#' true color image from Copernicus
 #' @param fun function to be applied to consolidate duplicated images
 #' @param verbose whether to display information on the
 #'   progress of operations
@@ -40,13 +41,14 @@
 #' pa_plot(rgb.rast)
 #' }
 #'
+
 pa_get_rgb <- function(satellite.images,
                         aoi = NULL,
                         pixel.res = '10m',
-                          check.clouds = FALSE,
-                          buffer.clouds = 100,
+                        check.clouds = FALSE,
+                        buffer.clouds = 100,
                         img.formats = c('jp2', 'tif'),
-                       rgb.bands = c('B04', 'B02', 'B03'),
+                       rgb.bands = NULL,
                        fun = function(x) mean(x, na.rm = TRUE), 
                        verbose = TRUE){
 
@@ -126,9 +128,7 @@ pa_get_rgb <- function(satellite.images,
                  exdir = temporary.dir, 
                  junkpaths = TRUE) 
     
-    rs <- list()
-    for  (b in rgb.bands){
-      bpath <- .pa_get_band(b, temporary.dir, pixel.res, img.formats)
+      bpath <- .pa_get_band('TCI', temporary.dir, pixel.res, img.formats)
       bimg <- stars::read_stars(bpath)
 
       if(!is.null(aoi)){
@@ -137,14 +137,11 @@ pa_get_rgb <- function(satellite.images,
         bimg <- stars::st_warp(bimg, crs = sf::st_crs(boundary))
         bimg <- sf::st_crop(bimg, boundary, crop = TRUE)
       }
-      rs[[length(rs) + 1]] <- bimg
-    }
 
-    img <- do.call(c, rs)
-    names(img) <- c('R', 'G', 'B')
-    
+    img <- bimg
+    img <- split(img, 'band')
     img <- stars::st_as_stars(img)
-
+    names(img) <- c('R', 'G', 'B')
     metadata.file <- .pa_select_s2_files(sat.img, which = 'metadata')
     metadata.file <- grep(metadata.file, list.files(temporary.dir), value = TRUE)
     metadata <- .pa_read_s2_metadata(file.path(temporary.dir, metadata.file))

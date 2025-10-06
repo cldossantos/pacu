@@ -11,7 +11,7 @@ pa_get_rgb(
   check.clouds = FALSE,
   buffer.clouds = 100,
   img.formats = c("jp2", "tif"),
-  rgb.bands = c("B04", "B02", "B03"),
+  rgb.bands = NULL,
   fun = function(x) mean(x, na.rm = TRUE),
   verbose = TRUE
 )
@@ -35,7 +35,8 @@ analysis.}
 
 \item{img.formats}{image formats to search for in the zipped file}
 
-\item{rgb.bands}{a vector containing the order of the RGB bands}
+\item{rgb.bands}{DEPRECATED - the function now uses directly the 
+true color image from Copernicus}
 
 \item{fun}{function to be applied to consolidate duplicated images}
 

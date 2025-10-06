@@ -1,7 +1,7 @@
 Package: pacu
 Type: Package
 Title: Precision Agriculture Computational Utilities
-Version: 0.1.72
+Version: 0.1.73
 Authors@R: c(person('dos Santos', 'Caio', email = 'clsantos@iastate.edu', role = c('aut', 'cre')),
              person('Miguez', 'Fernando', role = 'aut'))
 Description: Support for a variety of commonly used precision agriculture operations. Includes functions to download and process raw satellite images from Sentinel-2 <https://documentation.dataspace.copernicus.eu/APIs/OData.html>. Includes functions that download vegetation index statistics for a given period of time, without the need to download the raw images <https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Statistical.html>. There are also functions to download and visualize weather data in a historical context. Lastly, the package also contains functions to process yield monitor data. These functions can build polygons around recorded data points, evaluate the overlap between polygons, clean yield data, and smooth yield maps.

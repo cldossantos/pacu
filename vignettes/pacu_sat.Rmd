@@ -71,7 +71,7 @@ available.images <- pa_browse_dataspace(aoi = area.of.interest,
 
 Each entry in the data frame returned by the function is a
 satellite image available to be downloaded from Data Space.
-In this case, we can see that there are 68 images the meet
+In this case, we can see that there are 69 images the meet
 our requirements.
 
 ```{r reading-browse-ds, include=FALSE}
