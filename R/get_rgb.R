@@ -56,6 +56,9 @@ pa_get_rgb <- function(satellite.images,
   extensions <- paste0(img.formats, collapse = '|')
   extensions <- paste0('\\.(', extensions, ')$')
   res <- list()
+  
+  if(is.null(aoi) && check.clouds == TRUE) 
+    stop('When check.clouds is TRUE, aoi must be supplied')
 
   req.namespaces <- c('stars', 'sf')
   for (ns in req.namespaces) {

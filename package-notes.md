@@ -1,3 +1,11 @@
+
+## 2025-11-18
+
+- Version 0.1.74
+
+- Reverted the behavior of pa_yield back to the same of version 0.1.62 when it comes to
+removing crossed polygons. The changes I have made failed at the edge of the field.
+
 ## 2025-10-06
 
 - Version 0.1.73
