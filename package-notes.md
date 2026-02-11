@@ -1,4 +1,17 @@
 
+## 2026-02-11
+
+- Version 0.1.76
+
+- Bug within the .pa_fit_variogram function. When there were less then 20 experimental units, 
+the function would throw an error. Now, if there are less then 20, the test.df.size is set to 1.
+
+## 2026-02-04
+
+- Version 0.1.75
+
+- The grid argument in pa_yield now accepts a number. This will be passed as the grid size.
+
 ## 2025-11-18
 
 - Version 0.1.74

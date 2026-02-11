@@ -228,6 +228,12 @@ pa_yield <- function(input,
       grid <- grid[['trial']]
     }
     
+    if(inherits(grid, 'numeric')){
+      grid.size <- grid
+      grid <- sf::st_make_grid(input, cellsize = grid.size)
+      grid <- sf::st_as_sf(grid)
+    }
+    
     if (!inherits(grid, 'sf')) {
       grid <- sf::st_as_sf(grid)
     }

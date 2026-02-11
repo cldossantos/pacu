@@ -1120,7 +1120,7 @@
   f1 <-  variogram.list[[1]]
   
   if (test.variogram){
-    test.df.size <- nrow(df) %/% 20
+    test.df.size <- max(nrow(df) %/% 20, 1)
     test.df <- df[test.df.size, ]
     for (i in 1:length(variogram.list)){
       f1 <- variogram.list[[i]]
