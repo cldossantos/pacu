@@ -1,6 +1,9 @@
 #'
 #' @title Retrieve an RGB image from a zipped Sentinel 2 file
-#' @description Retrieve an RGB image from a zipped Sentinel 2 file
+#' @description Unzips one or more Sentinel-2 archives, extracts the true-color
+#'   image bands, and assembles a multi-band \code{stars} raster. If an area of
+#'   interest is provided the output is cropped to that extent. Images from the
+#'   same date are consolidated into a single layer using \code{fun}.
 #' @name pa_get_rgb
 #' @param satellite.images list of file paths to the Sentinel 2 zip files
 #' @param aoi NULL or an sf object used to crop the RGB raster to an area of interest

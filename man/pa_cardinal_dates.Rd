@@ -63,11 +63,17 @@ when there are no crops in the field. For example, c(1:3, 12) represent Jan, Feb
 }
 \value{
 when x is a vector, returns a vector of length 3 with the predicted
-cardinal dates. When x is a veg.index object, returns a stars object with 
-spatially distributed cardinal dates
+  cardinal dates. When x is a veg.index object, returns a stars object with
+  spatially distributed cardinal dates.
 }
 \description{
-Predict cardinal dates from satellite image data
+Fit a phenological model to vegetation index time series and
+  extract the three cardinal dates: green-up, peak, and senescence.
+  The function dispatches on the class of \code{x}: when \code{x} is a
+  numeric vector of dates or day-of-year values, it returns a length-3
+  vector of predicted cardinal dates; when \code{x} is a
+  \code{veg.index} object, it applies the model pixel-wise and returns
+  a \code{stars} object with spatially distributed cardinal dates.
 }
 \examples{
 \dontrun{

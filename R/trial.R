@@ -1,6 +1,11 @@
 #'
-#' @title EXPERIMENTAL FUNCTION - Create an interpolated trial object from as-applied data
-#' @description EXPERIMENTAL FUNCTION - Create an interpolated trial object from as-applied data
+#' @title Create an interpolated trial object from as-applied data
+#' @description Processes raw as-applied trial data into a spatially
+#'   interpolated \code{trial} object. Two algorithms are supported:
+#'   \sQuote{simple} (direct spatial interpolation of point data) and
+#'   \sQuote{ritas} (rectangle creation, intersection, tessellation,
+#'   apportioning, and smoothing). \strong{This function is experimental
+#'   and its interface may change in future versions.}
 #' @name pa_trial
 #' @rdname pa_trial
 #' @param input an sf object containing the as applied trial

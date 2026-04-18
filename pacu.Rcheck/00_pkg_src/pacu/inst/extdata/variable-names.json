@@ -1,0 +1,53 @@
+[
+ {
+    "type": "yield",
+    "column": "interval",
+    "names": ["cycles", "interval", "duration__", "duration_s", "duration"]
+  },
+  {
+    "type": "yield",
+    "column": "mass",
+    "names": ["mass", "wetmass"]
+  },
+  {
+    "type": "yield",
+    "column": "moisture",
+    "names": ["moisture__", "moisture"]
+  },
+  {
+    "type": "yield",
+    "column": "flow",
+    "names": ["crop_flw_m", "flow", "flow_corn", "crop_flow"]
+  },
+  {
+    "type": "yield",
+    "column": "yield",
+    "names": ["yld_vol_dr", "dry_yield", "yield_bu_a","dry_bu_ac", "yield_bu_ac", "dryyield", "yield_vol", "vryieldvol", "vryieldbal", "yield", "frge_yld_d", "rend_vol_s", "vryield", "yield_mass"]
+  },
+ {
+    "type": "yield",
+    "column": "distance",
+    "names": ["distance", "distance_f", "distance_m", "distance_i", "distance_m", "vrdistance", "distance__"]
+  },
+  {
+    "type": "yield",
+    "column": "angle",
+    "names": ["heading", "angle", "track_deg_", "piste_deg_", "vrheading"]
+  },
+  {
+    "type": "yield",
+    "column": "width",
+    "names": ["swth_wdth_", "width", "width_in", "swath", "swathwidth", "largeur_de", "swath_width", "swath_widt"]
+  },
+  {
+    "type": "yield",
+    "column": "time",
+    "names": ["time", "timestamp", "isotime", "heure", "utc"]
+  },
+  {
+    "type": "yield",
+    "column": "speed",
+    "names": ["speed", "speed_mph", "speed_mph_", "vitesse_km"]
+  }
+]
+

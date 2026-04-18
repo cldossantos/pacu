@@ -2,7 +2,7 @@
 % Please edit documentation in R/trial.R
 \name{pa_trial}
 \alias{pa_trial}
-\title{EXPERIMENTAL FUNCTION - Create an interpolated trial object from as-applied data}
+\title{Create an interpolated trial object from as-applied data}
 \usage{
 pa_trial(
   input,
@@ -122,7 +122,12 @@ step by step messages.}
 an object of class trial
 }
 \description{
-EXPERIMENTAL FUNCTION - Create an interpolated trial object from as-applied data
+Processes raw as-applied trial data into a spatially
+  interpolated \code{trial} object. Two algorithms are supported:
+  \sQuote{simple} (direct spatial interpolation of point data) and
+  \sQuote{ritas} (rectangle creation, intersection, tessellation,
+  apportioning, and smoothing). \strong{This function is experimental
+  and its interface may change in future versions.}
 }
 \details{
 This function will follow the steps in the

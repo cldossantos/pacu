@@ -1,4 +1,33 @@
 
+
+## 2026-04-17
+
+- Version 0.1.77
+
+- Conducted a full documentation revision pass focused on readability, consistency, and tone.
+
+- Improved package-level documentation in README and DESCRIPTION to better describe the package scope
+and provide cleaner installation and vignette guidance.
+
+- Revised wording and structure in the vignettes (pacu, satellite, weather, yield monitor, and FAQ)
+to make workflows easier to follow and reduce ambiguity.
+
+- Improved roxygen documentation for key exported functions, including pa_initialize_dataspace,
+pa_browse_dataspace, pa_download_dataspace, pa_get_vi_stats, pa_initialize_oauth,
+pa_get_weather_sf, pa_yield, pa_check_yield, and pacu_options.
+
+- Updated examples to be clearer and more practical.
+
+- pa_download_dataspace example now uses a single image and tempdir for a lightweight run.
+
+- pa_yield example now loads boundary data, assigns outputs to objects, and prints results.
+
+- pa_get_weather_sf example now uses quiet shapefile reading and includes a summary call.
+
+- pacu_options and pa_check_yield examples were clarified for readability.
+
+- Regenerated Rd files with roxygen2 and validated representative local examples successfully.
+
 ## 2026-02-11
 
 - Version 0.1.76

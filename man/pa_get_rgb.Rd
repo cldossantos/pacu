@@ -47,7 +47,10 @@ progress of operations}
 an object of class rgb and stars
 }
 \description{
-Retrieve an RGB image from a zipped Sentinel 2 file
+Unzips one or more Sentinel-2 archives, extracts the true-color
+  image bands, and assembles a multi-band \code{stars} raster. If an area of
+  interest is provided the output is cropped to that extent. Images from the
+  same date are consolidated into a single layer using \code{fun}.
 }
 \details{
 This is script that unzips the Sentinel 2 zipped file into a temporary folder, searches for the RGB,

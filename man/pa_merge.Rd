@@ -8,11 +8,14 @@
 \method{merge}{trial}(...)
 }
 \arguments{
-\item{...}{pa_trial objects}
+\item{...}{\code{trial} objects to merge.}
 }
 \value{
-object of class "trial"
+An object of class \code{trial}.
 }
 \description{
-Generic merge functionalities for pacu objects
+Combine two or more \code{trial} objects into a single
+  \code{trial} object. This is an S3 method for \code{base::merge} and
+  is useful when a field experiment spans multiple processing runs that
+  need to be joined before analysis.
 }

@@ -1,47 +1,90 @@
 # pacu: Precision Agriculture Computational Utilities <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
 [![CRAN](http://www.r-pkg.org/badges/version/pacu)](https://CRAN.R-project.org/package=pacu)
-[![CRAN
-downloads total](https://cranlogs.r-pkg.org/badges/grand-total/pacu)](https://github.com/r-hub/cranlogs.app)
+[![CRAN downloads total](https://cranlogs.r-pkg.org/badges/grand-total/pacu)](https://github.com/r-hub/cranlogs.app)
 [![CRAN downloads](https://cranlogs.r-pkg.org/badges/pacu)](https://cran.r-project.org/package=pacu)
 
-The *pacu* package allows for processing, visualization, and analysis of yield monitor data. Additionally, this package also allows for retrieval, processing, and visualization of weather and satellite data.
+The *pacu* package supports common precision agriculture workflows in R. It includes tools to process, visualize, and analyze yield monitor data, retrieve and summarize weather data, and download or summarize Sentinel-2 satellite imagery.
 
+Key capabilities:
+
+- **Yield monitor processing** — clean, grid, and map raw yield monitor data using the RITAS algorithm or a simpler interpolation approach
+- **Weather data** — download and summarize daily weather records from IEM and NASA POWER as APSIM-compatible met objects
+- **Sentinel-2 imagery** — authenticate with Copernicus Data Space, browse available scenes, download archives, and compute vegetation indices (NDVI, NDRE, EVI, and others)
+
+
+## Getting started
+
+Full tutorials are available as package vignettes:
+
+- [Introduction to pacu](https://CRAN.R-project.org/package=pacu/vignettes/pacu.html)
+- [Yield monitor processing](https://CRAN.R-project.org/package=pacu/vignettes/pacu_ym.html)
+- [Weather data](https://CRAN.R-project.org/package=pacu/vignettes/pacu_weather.html)
+- [Sentinel-2 satellite imagery](https://CRAN.R-project.org/package=pacu/vignettes/pacu_sat.html)
+- [FAQ](https://CRAN.R-project.org/package=pacu/vignettes/pacu_faq.html)
+
+A minimal example — check and process raw yield monitor data:
+
+```r
+library(pacu)
+
+extd.dir <- system.file("extdata", package = "pacu")
+raw.yield <- sf::read_sf(file.path(extd.dir, "2012-basswood.shp"))
+boundary  <- sf::read_sf(file.path(extd.dir, "boundary.shp"))
+
+pa_check_yield(input = raw.yield)
+
+ymp <- pa_yield(
+  input          = raw.yield,
+  boundary       = boundary,
+  algorithm      = "simple",
+  unit.system    = "metric",
+  lbs.per.bushel = 56
+)
+
+pa_plot(ymp)
+```
 
 ## Installation
 
-pacu is available on CRAN. To install pacu, you can run:
+pacu is available on CRAN:
 
-> install.packages("pacu")
+```r
+install.packages("pacu")
+```
 
 
-To install the development version from github you can try:
+To install the development version from GitHub, use either `devtools` or `remotes`:
 
-> devtools::install_github("cldossantos/pacu")\
-> library(pacu)
+```r
+devtools::install_github("cldossantos/pacu")
+library(pacu)
+```
 
-or you can also try the lightweight 'remotes' package:
+```r
+remotes::install_github("cldossantos/pacu")
+library(pacu)
+```
 
-> remotes::install_github("cldossantos/pacu")\
-> library(pacu)
+Vignettes are not built automatically when the package is installed from GitHub. If you want the full tutorials, install with vignette building enabled:
 
-The vignettes are not automatically built when the package is installed from github. To get started with pacu, you can build the vignettes and check the examples we provide.
+```r
+devtools::install_github("cldossantos/pacu", build_vignettes = TRUE)
+browseVignettes(package = "pacu")
+```
 
-> devtools::install_github("cldossantos/pacu", build_vignettes = TRUE)\
-> browseVignettes(package = 'pacu')
-
-or you can use the lightweight 'remotes' package:
-
-> remotes::install_github("cldossantos/pacu", build_vignettes = TRUE)\
-> browseVignettes(package = 'pacu')
+```r
+remotes::install_github("cldossantos/pacu", build_vignettes = TRUE)
+browseVignettes(package = "pacu")
+```
 
 
 ## Package requirements
 
-Imported packages: stars, XML, gstat, units, sf, apsimx, tmap, httr, jsonlite
+Core imports: `stars`, `XML`, `gstat`, `units`, `sf`, `apsimx`, `tmap`, `httr`, `jsonlite`
 
-Suggested packages: spData, knitr, mgcv, concaveman, rmarkdown, ggplot2, patchwork, nasapower, testthat
+Suggested packages for examples, visualization, and development: `spData`, `knitr`, `mgcv`, `concaveman`, `rmarkdown`, `ggplot2`, `patchwork`, `nasapower`, `testthat`
 
 ## Manuscript
 
-You can find the manuscript describing *pacu* [here](https://doi.org/10.1016/j.softx.2024.101971)
+The manuscript describing *pacu* is available [here](https://doi.org/10.1016/j.softx.2024.101971).

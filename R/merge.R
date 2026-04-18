@@ -1,10 +1,13 @@
 #' @title Merge trial objects
-#' @description  Generic merge functionalities for pacu objects
+#' @description Combine two or more \code{trial} objects into a single
+#'   \code{trial} object. This is an S3 method for \code{base::merge} and
+#'   is useful when a field experiment spans multiple processing runs that
+#'   need to be joined before analysis.
 #' @name merge
 #' @rdname pa_merge
-#' @param ... pa_trial objects
+#' @param ... \code{trial} objects to merge.
 #' @exportS3Method base::merge
-#' @return object of class "trial"
+#' @return An object of class \code{trial}.
 #' @export
 
 merge.trial <- function(...){

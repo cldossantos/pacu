@@ -2,8 +2,7 @@
 % Please edit documentation in R/vegetation_indices.R
 \name{pa_compute_vi}
 \alias{pa_compute_vi}
-\title{Compute vegetation indices from a zipped Sentinel
-  2 file}
+\title{Compute vegetation indices from a zipped Sentinel-2 file}
 \usage{
 pa_compute_vi(
   satellite.images,
@@ -60,8 +59,12 @@ progress of operations}
 an object of class veg.index and stars
 }
 \description{
-Compute vegetation indices from a zipped
-  Sentinel 2 file.
+Unzips one or more Sentinel-2 archives, extracts the relevant
+  spectral bands, and computes a vegetation index, returning a \code{stars}
+  raster. Several standard indices are pre-specified (NDVI, NDRE, EVI,
+  GCVI, BSI, RECI), and custom indices can be defined via the
+  \code{formula} argument. If an area of interest is provided the output
+  is cropped to that extent.
 }
 \details{
 This is script that unzips the Sentinel 2 zipped

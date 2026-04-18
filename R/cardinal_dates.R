@@ -1,11 +1,18 @@
 #'
 #' @title Predict cardinal dates from satellite image data
+#' @description Fit a phenological model to vegetation index time series and
+#'   extract the three cardinal dates: green-up, peak, and senescence.
+#'   The function dispatches on the class of \code{x}: when \code{x} is a
+#'   numeric vector of dates or day-of-year values, it returns a length-3
+#'   vector of predicted cardinal dates; when \code{x} is a
+#'   \code{veg.index} object, it applies the model pixel-wise and returns
+#'   a \code{stars} object with spatially distributed cardinal dates.
 #' @name pa_cardinal_dates
 #' @rdname pa_cardinal_dates
 #' @param x object of class vector or veg.index
 #' @return when x is a vector, returns a vector of length 3 with the predicted
-#' cardinal dates. When x is a veg.index object, returns a stars object with 
-#' spatially distributed cardinal dates
+#'   cardinal dates. When x is a veg.index object, returns a stars object with
+#'   spatially distributed cardinal dates.
 #' @export
 
 pa_cardinal_dates <- function(x, ...) {
