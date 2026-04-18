@@ -15,7 +15,15 @@ check the data. Different algorithms require different
 information in the input data set.}
 }
 \value{
-object of class check.yield
+Object of class \code{check.yield}, a list with:
+  \itemize{
+  \item \code{field.info}: basic field metadata (point count, area,
+  centroid, CRS).
+  \item \code{check.simple}: diagnostics for variables used in the
+  simple workflow (detected columns, guessed units, summaries).
+  \item \code{check.ritas}: diagnostics for variables used in the RITAS
+  workflow, including overlap information when available.
+  }
 }
 \description{
 Check for red flags in raw yield monitor data before
@@ -23,7 +31,11 @@ Check for red flags in raw yield monitor data before
 }
 \details{
 This function checks the input yield data for potential problems
-  before running `pa_yield()`.
+  before running `pa_yield()`. Use this output as a decision aid:
+  confirm column/units detection, review value ranges and missingness,
+  and check overlap diagnostics when using the RITAS workflow. If key
+  variables are not detected, supply `data.columns` and `data.units`
+  explicitly in `pa_yield()`.
 }
 \examples{
 \donttest{

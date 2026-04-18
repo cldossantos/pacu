@@ -53,5 +53,23 @@ library(pacu)
     pacu_options(suppress.warnings = TRUE,
                  suppress.messages = TRUE)
     ```
+
+  1.  I got an error from `pa_yield()`. How can I diagnose it quickly?
+
+    A practical sequence is:
+
+    1. Run `pa_check_yield(input, algorithm = "all")`.
+    2. Confirm that expected variables were detected and units look correct.
+    3. If needed, provide `data.columns` and `data.units` explicitly in `pa_yield()`.
+
+    Common messages and typical fixes:
+
+    | Message (or similar) | Typical cause | Typical fix |
+    |:--|:--|:--|
+    | `unable to find column(s): ...` | Required variables were not identified from input names | Rename columns to common names or supply `data.columns` explicitly |
+    | `"lbs.per.bushel" argument is needed ...` | U.S. standard yield units require a bushel-to-mass conversion | Set `lbs.per.bushel` (e.g., 56 corn, 60 soybean) |
+    | `When formula contains explanatory variables, grid must be supplied.` | Formula includes predictors not available in the default geometry-only setup | Supply `grid` with required predictor columns |
+    | `formula should only be used when smooth.method = krige` | Formula provided with `none` or `idw` smoothing | Use `smooth.method = "krige"` when passing formula predictors |
+    | `when remove.crossed.polygons is true, grid needs to be supplied` | Crossed-polygon filtering needs trial/grid context | Provide `grid` when `remove.crossed.polygons = TRUE` |
     
     

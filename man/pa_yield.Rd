@@ -87,7 +87,10 @@ observations when there is overlap between the
 vehicular polygons. A value of 0 does not remove any
 observations. A value of 1 removes all observations
 that overlap even minimally with neighboring
-observations.}
+observations. This argument is only used by the
+\sQuote{ritas} algorithm. Start with 0.5 (default):
+lower values preserve more data but can retain overlap
+artifacts, while higher values are more conservative.}
 
 \item{var.label}{optional string to name the final
 product. Defaults to \sQuote{yield}.}
@@ -102,7 +105,10 @@ distance from the field edge and global standard
 deviation.}
 
 \item{clean.sd}{standard deviation above which the
-cleaning step will remove data. Defaults to 3.}
+cleaning step will remove data. Defaults to 3.
+Lower values remove more extreme points (more
+aggressive cleaning); higher values keep more points.
+Values between 2.5 and 4 are often reasonable.}
 
 \item{clean.edge.distance}{distance (m) from the field
 edge above which the cleaning step will remove data.
@@ -112,7 +118,10 @@ Defaults to 0.}
 \sQuote{none}, no smoothing will be conducted. If
 \sQuote{idw}, inverse distance weighted interpolation
 will be conducted. If \sQuote{krige}, kriging will be
-conducted.}
+conducted. Use \sQuote{none} for fast exploratory maps,
+\sQuote{idw} for a quick deterministic surface, and
+\sQuote{krige} when uncertainty estimates and variogram-
+based smoothing are needed.}
 
 \item{fun}{transformation used before smoothing. Current options are
 \sQuote{none} and \sQuote{log}. If \sQuote{none}, operations are carried out
@@ -131,7 +140,9 @@ necessary otherwise.}
 moisture value to which the yield map predictions
 should be adjusted (e.g., 15.5 for corn, and 13.0 for
 soybean). If NULL, the function will adjust the
-moisture to the average moisture of the field.}
+moisture to the average moisture of the field.
+Set this explicitly when comparing maps across fields
+or seasons at a common market moisture standard.}
 
 \item{lag.adj}{an optional numeric value used to account
 for the time lag between the crop being cut by the
@@ -164,15 +175,38 @@ step by step messages.}
 \link[gstat]{krige} and \link[gstat]{idw}}
 }
 \value{
-an object of class yield
+An object of class \code{yield} (a list) with components:
+  \itemize{
+  \item \code{yield}: an \code{sf} object with predicted yield values and
+  geometry.
+  \item \code{variogram}: variogram information when
+  \code{smooth.method = "krige"}; otherwise \code{NULL}.
+  \item \code{variogram.model}: fitted variogram model when kriging is
+  used; otherwise \code{NULL}.
+  \item \code{steps}: intermediate geometries when
+  \code{steps = TRUE}; otherwise \code{NULL}.
+  }
+  The \code{yield} component stores metadata as attributes, including the
+  selected algorithm, smoothing method, moisture target, response label, and
+  output units.
 }
 \description{
 Create an interpolated yield object from raw data.
 }
 \details{
-This function will follow the steps in the
-  selected algorithm to produce a yield map from the raw
-  data.
+This function follows the selected algorithm to
+  produce a yield map from raw observations. Practical
+  guidance for common decisions:
+  \itemize{
+  \item Start with \code{algorithm = "simple"} for a fast baseline and
+  switch to \code{"ritas"} when equipment geometry and overlap handling are
+  important.
+  \item Use \code{smooth.method = "idw"} for quick interpolation and
+  \code{"krige"} when you need model-based smoothing and prediction
+  uncertainty.
+  \item Apply \code{clean = TRUE} only after reviewing
+  \code{pa_check_yield()} output, then tune \code{clean.sd} as needed.
+  }
 }
 \examples{
 \dontrun{

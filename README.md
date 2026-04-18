@@ -12,6 +12,25 @@ Key capabilities:
 - **Weather data** — download and summarize daily weather records from IEM and NASA POWER as APSIM-compatible met objects
 - **Sentinel-2 imagery** — authenticate with Copernicus Data Space, browse available scenes, download archives, and compute vegetation indices (NDVI, NDRE, EVI, and others)
 
+## Workflow and object model
+
+Most *pacu* workflows follow the same pattern:
+
+1. Check inputs and assumptions (`pa_check_yield()`, `pa_browse_dataspace()`, etc.)
+2. Process data into a domain object (`pa_yield()`, `pa_compute_vi()`, `pa_get_weather_sf()`)
+3. Summarize or visualize outputs (`summary()`, `pa_plot()`, `plot()`)
+
+Common output classes:
+
+- `check.yield`: pre-processing diagnostics for yield monitor inputs
+- `yield`: processed yield maps and related metadata
+- `trial`: processed as-applied trial maps
+- `veg.index`: vegetation index rasters and summaries
+
+## Why pacu
+
+*pacu* is designed as a unified toolkit for routine precision agriculture workflows. Instead of stitching together separate tools for yield monitor cleaning, weather retrieval, and Sentinel-2 processing, users can work within a consistent interface and object system across these domains.
+
 
 ## Getting started
 
