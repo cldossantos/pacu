@@ -4,11 +4,11 @@
 [![CRAN downloads total](https://cranlogs.r-pkg.org/badges/grand-total/pacu)](https://github.com/r-hub/cranlogs.app)
 [![CRAN downloads](https://cranlogs.r-pkg.org/badges/pacu)](https://cran.r-project.org/package=pacu)
 
-The *pacu* package supports common precision agriculture workflows in R. It includes tools to process, visualize, and analyze yield monitor data, retrieve and summarize weather data, and download or summarize Sentinel-2 satellite imagery.
+The *pacu* package supports common precision agriculture workflows in R. It includes tools to process and visualize yield monitor data from production and experimental fields, retrieve and summarize weather data, and download or summarize Sentinel-2 satellite imagery.
 
 Key capabilities:
 
-- **Yield monitor processing** — clean, grid, and map raw yield monitor data using the RITAS algorithm or a simpler interpolation approach
+- **Yield monitor processing** — process and visualize yield monitor data from production and experimental fields, with quality checks and mapping workflows using either a simple method or the RITAS algorithm
 - **Weather data** — download and summarize daily weather records from IEM and NASA POWER as APSIM-compatible met objects
 - **Sentinel-2 imagery** — authenticate with Copernicus Data Space, browse available scenes, download archives, and compute vegetation indices (NDVI, NDRE, EVI, and others)
 
